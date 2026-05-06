@@ -16,7 +16,7 @@
     "productivity",
     "knowledge-management"
   ],
-  "homepage": "https://github.com/f-luo/llm-wiki-plugin",
+  "homepage": "https://github.com/yellowstonely/llm-wiki-plugin",
   "license": "MIT",
   "version": "0.2.0",
   "minClaudeCodeVersion": "1.0.0"

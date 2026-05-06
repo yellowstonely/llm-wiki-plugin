@@ -30,7 +30,7 @@ doesn't forget to update a cross-reference, and can touch 15 files in one pass.
 ## Install
 
 ```bash
-git clone https://github.com/f-luo/llm-wiki-plugin ~/.claude/plugins/llm-wiki
+git clone https://github.com/yellowstonely/llm-wiki-plugin ~/.claude/plugins/llm-wiki
 ```
 
 Reload Claude Code; the plugin auto-discovers and loads. No other setup
