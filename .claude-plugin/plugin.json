@@ -20,12 +20,12 @@
       "skills/llm-wiki/SKILL.md"
     ],
     "commands": [
-      "commands/wiki-init.md",
-      "commands/wiki-ingest.md",
-      "commands/wiki-query.md",
-      "commands/wiki-research.md",
-      "commands/wiki-lint.md",
-      "commands/wiki-list.md"
+      "commands/init.md",
+      "commands/ingest.md",
+      "commands/query.md",
+      "commands/research.md",
+      "commands/lint.md",
+      "commands/list.md"
     ]
   }
 }
