@@ -40,6 +40,7 @@ required for the core workflow.
 
 - `pandoc` — required for DOCX, PPTX, RTF, EPUB ingest
   (`brew install pandoc`)
+- `python3` — required for XLSX/CSV ingestion (standard on macOS)
 - `qmd` — hybrid semantic search for large wikis (≥ ~100 pages);
   see [https://github.com/tobi/qmd](https://github.com/tobi/qmd)
 
@@ -50,7 +51,7 @@ PDFs, Markdown, plain text, and HTML work without either dependency.
 ## Quickstart
 
 ```
-/wiki-init transformer-wiki research "deep dive on transformer architectures, attention mechanisms, and scaling laws — headline question: what made the transformer design win?"
+/wiki-init transformer-wiki research "deep dive on transformer architectures, attention mechanisms, and scaling laws - headline question: what made the transformer design win?"
 /wiki-ingest https://arxiv.org/pdf/1706.03762
 /wiki-query "how does attention compare to gated recurrence?"
 ```
@@ -86,7 +87,7 @@ Claude from your free-form description), initializes `index.md`, `log.md`,
 **Example:**
 
 ```
-/wiki-init fitness-wiki personal "tracking strength training and nutrition — goal: identify what actually moves the needle on progressive overload"
+/wiki-init fitness-wiki personal "tracking strength training and nutrition - goal: identify what actually moves the needle on progressive overload"
 ```
 
 ---
@@ -153,7 +154,7 @@ back as a new page — and asks before writing.
 
 ### `/wiki-lint`
 
-**Syntax:** `/wiki-lint`
+**Syntax:** `/wiki-lint [--vault <path>]`
 
 Health-check the current vault. Walks every page in `wiki/`, checks for:
 orphan `[[wikilinks]]` pointing to missing pages, dangling pages with no
