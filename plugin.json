@@ -1,0 +1,30 @@
+{
+  "name": "llm-wiki",
+  "version": "0.1.0",
+  "description": "Karpathy's LLM Wiki pattern as a Claude Code plugin. Bootstrap, maintain, query, and lint plain-markdown personal knowledge bases — Claude does the maintenance, Obsidian is your reading UI.",
+  "author": {
+    "name": "f.luo"
+  },
+  "homepage": "https://github.com/f-luo/llm-wiki-plugin",
+  "license": "MIT",
+  "keywords": [
+    "knowledge-base",
+    "wiki",
+    "research",
+    "obsidian",
+    "karpathy",
+    "markdown"
+  ],
+  "components": {
+    "skills": [
+      "skills/llm-wiki/SKILL.md"
+    ],
+    "commands": [
+      "commands/wiki-init.md",
+      "commands/wiki-ingest.md",
+      "commands/wiki-query.md",
+      "commands/wiki-lint.md",
+      "commands/wiki-list.md"
+    ]
+  }
+}
