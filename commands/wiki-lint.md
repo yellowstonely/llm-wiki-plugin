@@ -27,13 +27,13 @@ Execute the full lint workflow documented in SKILL.md. Checks, in order:
 | # | Check | What to look for |
 |---|-------|-----------------|
 | 1 | **Orphan `[[wikilinks]]`** | Links pointing to slugs that have no corresponding page file |
-| 2 | **Dangling pages** | Pages with no inbound `[[wikilinks]]` and not listed in `index.md` |
+| 2 | **Dangling pages** | Pages with no inbound `[[wikilinks]]` and not listed in `index.md` (exempts system files: `index.md`, `log.md`, `synthesis.md`) |
 | 3 | **Index drift** | Pages present on disk under `wiki/` but absent from `index.md`, or entries in `index.md` with no matching file |
 | 4 | **Frontmatter validity** | Pages missing any of the required fields: `type`, `title`, `created`, `updated`, `sources` |
 | 5 | **Schema conformance** | `branch:` values that do not appear in `schema.md`'s declared branch list |
 | 6 | **Synthesis lag** | `synthesis.md`'s `updated:` field is older than the `updated:` of the newest source page |
 | 7 | **Stale claims** | Heuristic LLM judgment: sample source pages with overlapping topics and flag claims that appear contradictory or outdated relative to each other |
-| 8 | **Missing concept pages** | Concepts mentioned (by name or `[[slug]]`) in 3 or more pages that have no dedicated page of their own |
+| 8 | **Missing concept pages** | Concepts mentioned (by name or `[[slug]]`) in 3 or more pages with no dedicated page anywhere in `wiki/` (any subdirectory) |
 
 ### 3. Produce a markdown report
 

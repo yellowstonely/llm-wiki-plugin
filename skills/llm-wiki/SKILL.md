@@ -634,13 +634,13 @@ Run the following 8 checks against the current vault:
 | Check | What it detects |
 |---|---|
 | Orphan `[[wikilinks]]` | Links pointing to non-existent pages — list the missing slugs |
-| Dangling pages | Pages with no inbound `[[wikilinks]]` AND not listed in `index.md` |
+| Dangling pages | Pages with no inbound `[[wikilinks]]` AND not listed in `index.md` (exempts system files: `index.md`, `log.md`, `synthesis.md`) |
 | Index drift | Pages in `wiki/` not listed in `index.md`, and vice-versa |
 | Stale claims | Source pages with claims contradicted by newer source pages (heuristic; LLM-judged on a small sample) |
 | Frontmatter validity | Missing required fields (`type`, `title`, `created`, `updated`, `sources`) |
 | Schema conformance | `branch:` values not in `schema.md`'s declared branch list |
 | Synthesis lag | `synthesis.md`'s `updated:` field older than the newest source page |
-| Missing concept pages | Concepts mentioned in 3 or more pages without their own dedicated page (heuristic) |
+| Missing concept pages | Concepts mentioned in 3 or more pages with no dedicated page anywhere in `wiki/` (any subdirectory) (heuristic) |
 
 **Report format.** Produce a Markdown report grouped by severity:
 - **Error** — broken structure that will confuse navigation (orphan links, frontmatter invalidity)

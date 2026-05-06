@@ -136,7 +136,7 @@ Where `<type>` is:
 
 Atomic write to `<vault>/.llm-wiki/ingest-cache.json`:
 
-1. Read existing cache JSON, or start from `{"entries": {}}` if absent.
+1. Read existing cache JSON, or start from `{}` if absent.
 2. Set (or overwrite) the entry for the vault-relative path:
    ```json
    {
