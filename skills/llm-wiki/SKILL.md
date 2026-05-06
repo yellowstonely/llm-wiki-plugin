@@ -501,6 +501,7 @@ Every operation appends to `wiki/log.md` with the format `## [YYYY-MM-DD] <type>
 | `re-ingest` | `/wiki-ingest --re-ingest` re-processes an already-ingested source |
 | `query` | `/wiki-query` (single-vault) is run; entry appended even if no answer is filed back |
 | `cross-query` | `/wiki-query --all` or `/wiki-query --vaults a,b` is run; entry appended to each queried vault's log |
+| `research` | `/wiki-research` is run; one summary entry per research session, in addition to per-source `ingest` entries |
 | `lint` | `/wiki-lint` is run; one entry summarizing the issue count and any auto-fixes |
 
 Greppable via `grep "^## \[" wiki/log.md | tail -10`.
@@ -583,6 +584,46 @@ Greppable via `grep "^## \[" wiki/log.md | tail -10`.
    - **Cross-cutting synthesis:** the meta-answer spanning the vaults, with disagreements and agreements between wikis surfaced explicitly.
 4. Filing back is opt-in and explicit. Ask: "This cross-cutting synthesis seems valuable. File to: (a) wiki-A's synthesis, (b) wiki-B's synthesis, (c) save without filing, (d) discard." Cross-vault answers do not silently land in any single wiki's `synthesis.md`.
 5. Append `## [YYYY-MM-DD] cross-query | <question>` to each queried vault's `wiki/log.md` with one bullet per vault on what was contributed.
+
+---
+
+### Research workflow
+
+Triggered by `/wiki-research "<topic>"`. Reuses ingest infrastructure for the per-source heavy lifting; the unique parts are web search and triage.
+
+**Mode:** by default, every selected source goes through the standard ingest workflow including the discussion-pause per source. Pass `--unsupervised` on `/wiki-research` to skip per-source pauses (the curated-list confirmation in Step 4 is then the only supervision checkpoint).
+
+**Steps:**
+
+1. **Detect the vault.** Walk up from cwd to find `purpose.md`, or use `--vault <path>`. Refuse with the "Not a vault" error if not found. Read `purpose.md` for relevance grounding.
+
+2. **Web search.** Use the firecrawl skill (preferred default per the user's global instructions). Limit to `--max-sources N` (default 20). If firecrawl unavailable, fall back to WebSearch. Parse out `{title, url, snippet}` per candidate.
+
+3. **LLM triage.** For each candidate, score against `purpose.md`:
+   - **Relevance** (1–5 stars): how well does this match the headline question and scope-in?
+   - **Type**: paper | blog | news | talk | spec | other.
+   - **Already-covered**: cross-reference URL/title slug against `wiki/sources/*.md`.
+   - For arxiv URLs and known academic venues, default to ★★★★ unless clearly off-topic.
+
+4. **Present + ask.** Show curated list sorted by relevance. Always ask before proceeding (Karpathy-faithful supervised pattern). Selection syntax: `1,3,5` / `1-5` / `all` / `all stars 4+` / `skip blogs` / `none`.
+
+5. **Per chosen source:** fetch (firecrawl scrape → markdown), save to `<vault>/raw/clips/<slug>.md`, run the standard ingest workflow (Steps 1–7 of Ingest workflow above). Skip already-covered (cache hit) unless user opted to re-ingest.
+
+6. **Summary log entry.** In addition to the per-source `ingest` entries, append one summary:
+
+   ```
+   ## [<today>] research | <topic>
+   - Searched web for "<topic>" → N candidates
+   - User selected M sources to ingest: <short-titles>
+   - Skipped K already-covered, R user-rejected
+   ```
+
+**Edge cases:**
+- Vault has no filled-in `purpose.md`: warn user that triage may be weak; suggest filling in `purpose.md` first.
+- Search returns 0 results: report and suggest broadening the query.
+- All candidates already-covered: report; suggest `/wiki-query "<topic>"` to see what's already there.
+- Source fetch fails for one URL: continue, summarize failures at the end.
+- User selects "none" or aborts: do nothing, no log entry.
 
 ---
 

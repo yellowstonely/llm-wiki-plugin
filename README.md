@@ -54,6 +54,7 @@ PDFs, Markdown, plain text, and HTML work without either dependency.
 /wiki-init transformer-wiki research "deep dive on transformer architectures, attention mechanisms, and scaling laws - headline question: what made the transformer design win?"
 /wiki-ingest https://arxiv.org/pdf/1706.03762
 /wiki-query "how does attention compare to gated recurrence?"
+/wiki-research "scaling laws"  # find more sources via web search
 ```
 
 After `/wiki-init`, open the vault directory in Obsidian. Run `/wiki-ingest`
@@ -149,6 +150,22 @@ back as a new page — and asks before writing.
 /wiki-query "what are the main critiques of scaled dot-product attention?"
 /wiki-query --vaults transformer-wiki,llm-world-models-wiki "do transformers learn world models?"
 ```
+
+---
+
+### `/wiki-research`
+
+**Syntax:** `/wiki-research "<topic>" [--max-sources N] [--unsupervised] [--vault <path>]`
+
+Searches the web for the topic, triages candidates against the vault's `purpose.md`, presents a curated list with star ratings, and ingests the chosen ones. Useful for bootstrapping a fresh wiki ("/wiki-init transformer-wiki research" then "/wiki-research 'scaling laws in transformer training'") or expanding coverage of an existing one. Per-source supervision pauses are on by default; pass `--unsupervised` to batch through.
+
+**Example:**
+
+```
+/wiki-research "scaling laws in transformer training"
+```
+
+Returns a triaged list of papers/blogs/news/etc. with relevance ratings; you pick which to ingest.
 
 ---
 
