@@ -1,0 +1,22 @@
+{
+  "name": "llm-wiki-marketplace",
+  "owner": {
+    "name": "Frank Luo"
+  },
+  "metadata": {
+    "description": "Personal marketplace hosting the llm-wiki plugin (Karpathy's LLM Wiki pattern as a Claude Code plugin).",
+    "version": "0.2.2"
+  },
+  "plugins": [
+    {
+      "name": "llm-wiki",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/yellowstonely/llm-wiki-plugin.git"
+      },
+      "description": "Karpathy's LLM Wiki pattern as a Claude Code plugin. Bootstrap, maintain, query, research, and lint plain-markdown personal knowledge bases. Six slash commands (/wiki-init, /wiki-ingest, /wiki-query, /wiki-research, /wiki-lint, /wiki-list) and one auto-loading skill. Obsidian is the reading IDE; Claude does the maintenance.",
+      "version": "0.2.2",
+      "strict": true
+    }
+  ]
+}
