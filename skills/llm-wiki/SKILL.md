@@ -572,7 +572,7 @@ Greppable via `grep "^## \[" wiki/log.md | tail -10`.
 3. Otherwise: select relevant pages by index scan and filename match (typically 5–10 pages).
 4. Read those pages. Also read `wiki/synthesis.md` and `purpose.md` for cross-cutting context.
 5. Answer with `[[wiki-page]]` citations that bottom out at `wiki/sources/` pages.
-6. If the answer is non-trivial (a comparison, novel synthesis, new framing): offer to file as `wiki/comparisons/<slug>.md`, `wiki/questions/<slug>.md`, or as an entry in `wiki/synthesis.md`. Suggest the page type based on shape; ask before filing.
+6. If the answer is non-trivial (a comparison, novel synthesis, new framing): offer to file as `wiki/comparisons/<slug>.md`, `wiki/questions/<slug>.md`, or as an entry in `wiki/synthesis.md`. Suggest the page type based on shape; ask before filing. When filing as an append to `synthesis.md`, bump the `updated:` field in `synthesis.md`'s frontmatter to today's date. (New comparison/question pages carry fresh frontmatter; only the `synthesis.md` append needs this explicit bump.)
 7. Append `## [YYYY-MM-DD] query | <question>` to `wiki/log.md` with one bullet on the answer and where it landed (if filed back).
 
 **Cross-vault workflow (via `--all` or `--vaults a,b`):**

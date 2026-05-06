@@ -176,19 +176,19 @@ If firecrawl scrape is unavailable, fall back to WebFetch and save the result to
 
 ### 5b. Run the standard ingest workflow
 
-Run the `/wiki-ingest` workflow (Steps 1–7 of single-source ingest from SKILL.md) on the saved file at `<vault>/raw/clips/<slug>.md`:
+The source is already resolved and in Markdown form at `<vault>/raw/clips/<slug>.md` — Steps 1 (resolve) and 3 (extract) of the SKILL.md ingest workflow are already complete. Enter the ingest workflow at **Step 2 (cache check)**:
 
-1. Compute SHA-256 of the fetched content. Check `.llm-wiki/ingest-cache.json`. If cached and hash matches, skip with "Already ingested" message.
-2. Read the markdown source. Summarize key takeaways (1–2 paragraphs). Identify proposed entity/concept/comparison/question pages (5–15 typical). Note contradictions with existing wiki content. Describe how this source affects `synthesis.md`.
+1. Compute SHA-256 of the saved file at `<vault>/raw/clips/<slug>.md`. Check `.llm-wiki/ingest-cache.json`. If the hash matches and `--re-ingest` is not set, skip with the "Already ingested" message and continue to the next source — **do not re-ingest**.
+2. If cache miss (or `--re-ingest`), continue from **SKILL.md ingest Step 4 (read + discuss)** — NOT Step 1. Read the markdown source. Summarize key takeaways (1–2 paragraphs). Identify proposed entity/concept/comparison/question pages (5–15 typical). Note contradictions with existing wiki content. Describe how this source affects `synthesis.md`.
 3. **Discussion pause** — UNLESS `--unsupervised` is set. Pause and wait for user emphasis direction before writing. If `--unsupervised` is set, proceed directly with best-judgment content.
-4. Write wiki pages:
+4. Write wiki pages (SKILL.md ingest Step 5):
    - `<vault>/wiki/sources/<slug>.md` (full source page with frontmatter per SKILL.md conventions)
    - Entity / concept / comparison / question pages (create or merge as appropriate)
    - Update `<vault>/wiki/index.md`
    - Update `<vault>/wiki/synthesis.md` if this source materially shifts the cross-cutting position (standard mode only)
    - Append per-source log entry to `<vault>/wiki/log.md`: `## [<today>] ingest | <source-title>`
-5. Update SHA-256 cache (atomic write to `.llm-wiki/ingest-cache.json.tmp`, then `mv`).
-6. If qmd is present: `which qmd && qmd index --update <vault> 2>&1 || true`
+5. Update SHA-256 cache — SKILL.md ingest Step 6 (atomic write to `.llm-wiki/ingest-cache.json.tmp`, then `mv`).
+6. If qmd is present — SKILL.md ingest Step 7: `which qmd && qmd index --update <vault> 2>&1 || true`
 
 ---
 

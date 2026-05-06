@@ -41,8 +41,8 @@ Group findings by severity:
 
 - **Error** — structural problems that break navigation or render the vault inconsistent (orphan links,
   missing required frontmatter, index drift)
-- **Warning** — quality issues that degrade usefulness but don't break structure (synthesis lag, dangling
-  pages, schema violations)
+- **Warning** — quality issues that degrade usefulness but don't break structure (dangling pages,
+  synthesis lag, schema violations)
 - **Suggestion** — low-confidence or heuristic findings (stale claims, missing concept pages)
 
 Each finding must include:

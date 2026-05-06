@@ -50,7 +50,7 @@ If the answer is a substantive comparison, novel synthesis, or new framing (not 
 - `<vault>/wiki/questions/<slug>.md`
 - An entry appended to `<vault>/wiki/synthesis.md`
 
-Suggest the page type based on the answer's shape; ask before filing. If user agrees, write the page and update index.md.
+Suggest the page type based on the answer's shape; ask before filing. If user agrees, write the page and update index.md. When filing as an append to `synthesis.md`, also bump the `updated:` field in `synthesis.md`'s frontmatter to today's date. (New comparison/question pages have fresh frontmatter, so `updated:` is set automatically; only the `synthesis.md` append case needs this explicit bump.)
 
 ### Step 6 — Append to `<vault>/wiki/log.md`
 

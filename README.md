@@ -95,7 +95,7 @@ Claude from your free-form description), initializes `index.md`, `log.md`,
 
 ### `/wiki-ingest`
 
-**Syntax:** `/wiki-ingest <url-or-path> [--scaffold] [--re-ingest] [--all]`
+**Syntax:** `/wiki-ingest <url-or-path> [--scaffold] [--re-ingest] [--all] [--vault <path>]`
 
 Ingest a source into the current vault. Resolves the source (URL fetch,
 copy from outside the vault, or use as-is if already inside), computes a
@@ -130,7 +130,7 @@ shifts the cross-cutting position.
 
 ### `/wiki-query`
 
-**Syntax:** `/wiki-query <question> [--all | --vaults a,b]`
+**Syntax:** `/wiki-query <question> [--all | --vaults a,b] [--vault <path>]`
 
 Answer a question against the wiki. Reads `index.md` first, selects relevant
 pages by index scan (or `qmd search` if qmd is installed and the wiki has
