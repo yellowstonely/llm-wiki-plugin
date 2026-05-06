@@ -489,6 +489,22 @@ If a registered vault's `path` no longer exists on disk when a cross-vault query
 
 ## Workflow procedures
 
+### Log entry types
+
+Every operation appends to `wiki/log.md` with the format `## [YYYY-MM-DD] <type> | <title>`. The `<type>` is one of:
+
+| Type | When emitted |
+|---|---|
+| `init` | `/wiki-init` creates a new vault |
+| `ingest` | `/wiki-ingest` adds a source in standard mode |
+| `scaffold` | `/wiki-ingest --scaffold` files a source as a field-map |
+| `re-ingest` | `/wiki-ingest --re-ingest` re-processes an already-ingested source |
+| `query` | `/wiki-query` (single-vault) is run; entry appended even if no answer is filed back |
+| `cross-query` | `/wiki-query --all` or `/wiki-query --vaults a,b` is run; entry appended to each queried vault's log |
+| `lint` | `/wiki-lint` is run; one entry summarizing the issue count and any auto-fixes |
+
+Greppable via `grep "^## \[" wiki/log.md | tail -10`.
+
 ### Ingest workflow
 
 **Mode.** If `--scaffold` is set, run in *field-map mode*: file the source as a field-map (not a thesis source); write entity/concept/question pages as one-paragraph stubs only; use `scaffold` as the log entry type instead of `ingest`; never update `synthesis.md`. Otherwise run in *standard mode*.
@@ -513,9 +529,26 @@ If a registered vault's `path` no longer exists on disk when a cross-vault query
    - Create or merge `wiki/entities/`, `wiki/concepts/`, `wiki/comparisons/`, `wiki/questions/` pages — typically 5–15 pages touched (standard: rich content; scaffold: one-paragraph stubs only).
    - Update `wiki/index.md` to list the new source page and any new entity/concept pages.
    - Update `wiki/synthesis.md` only if the source materially changes the cross-cutting position (standard mode only — scaffold mode never updates synthesis). Be explicit about what changed and why.
-   - Append to `wiki/log.md`: `## [YYYY-MM-DD] ingest | <title>` (standard) or `## [YYYY-MM-DD] scaffold | <title>` (scaffold), with 3–5 bullets describing what was written.
+   - Append to `wiki/log.md`: `## [YYYY-MM-DD] ingest | <title>` (standard), `## [YYYY-MM-DD] scaffold | <title>` (scaffold), or `## [YYYY-MM-DD] re-ingest | <title>` (when `--re-ingest` is set), with 3–5 bullets describing what was written.
 
-6. **Update SHA-256 cache.** Write the new entry to `.llm-wiki/ingest-cache.json` including the `files_written` list.
+6. **Update SHA-256 cache.** Write to `<vault>/.llm-wiki/ingest-cache.json` using this format:
+
+   ```json
+   {
+     "raw/sources/vaswani-2017-attention.pdf": {
+       "sha256": "127c8dcb...",
+       "last_ingested": "2026-05-06",
+       "files_written": [
+         "wiki/sources/vaswani-2017-attention.md",
+         "wiki/entities/transformer-architecture.md"
+       ]
+     }
+   }
+   ```
+
+   - **Cache key** = vault-relative path of the source *after resolution* (i.e. after a URL has been fetched and saved to `raw/clips/<slug>.md`, or an external file copied into `raw/sources/`). URLs themselves are NOT cache keys — the resolved local file is.
+   - **Atomic write**: write to `.llm-wiki/ingest-cache.json.tmp`, then `mv` over the original. This protects against corruption on interruption.
+   - On `--re-ingest`, the entry is replaced (not merged) — old `files_written` list is overwritten.
 
 7. **If qmd is present:** run `qmd index --update <vault>` (cheap when warm).
 
@@ -655,4 +688,6 @@ When `/wiki-ingest` receives a non-Markdown source, extract it to Markdown befor
 
 **Cache hit.** When the source SHA-256 matches the cache and `--re-ingest` is not set: "Source `<file>` was already ingested (hash unchanged). Pass `--re-ingest` to force re-processing."
 
-**Unknown scenario.** When `/wiki-init` receives an unrecognized scenario name: "Unknown scenario `<name>`. Valid scenarios are: `research`, `reading`, `personal`, `business`, `general`. Defaulting to `research` unless you specify one of these."
+**Unknown scenario.** When `/wiki-init` receives a scenario name that isn't one of `research | reading | personal | business | general`, list the valid scenarios and ask the user to retry. Do NOT silently default — silent defaults mask typos.
+
+Example response: `"<scenario>" isn't a known scenario. Valid choices: research, reading, personal, business, general. Re-run with one of these.`
