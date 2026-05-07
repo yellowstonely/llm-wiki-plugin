@@ -66,13 +66,53 @@ Use SKILL.md's extraction reference. Format-by-format decision table:
 | Format | Tool |
 |---|---|
 | `.md`, `.txt` | Read directly (no extraction step needed) |
-| `.pdf` | Read tool first; if it returns empty or garbage, fall back to `pdftotext <file> -` |
+| `.pdf` | **`marker_single` if available** (best quality — preserves equations as LaTeX, tables as Markdown, multi-column layouts). Otherwise Read tool. Last-resort: `pdftotext <file> -`. See PDF extraction block below. |
 | `.docx`, `.odt`, `.rtf`, `.epub` | `pandoc <file> -t markdown -o <vault>/raw/clips/<slug>.md` |
 | `.pptx` | `pandoc -t markdown` first; fallback: `unzip -p <file> 'ppt/slides/slide*.xml' \| grep -oE '<a:t>[^<]+</a:t>'` |
 | `.xlsx`, `.csv` | `python3 -c "import openpyxl; wb=openpyxl.load_workbook(...)"` style one-liner |
 | `.html` (already on disk) | `pandoc -t markdown` |
 
 If a required tool (pandoc / pdftotext / python3) is not installed, emit the "Missing extraction tool" error from SKILL.md and exit. Do NOT silently produce empty content — an empty extraction is worse than no extraction.
+
+**PDF extraction — preferred chain (added v0.4.3):**
+
+```bash
+# <src> is the resolved PDF path; <slug> is the computed kebab-case slug.
+out="<vault>/raw/clips/<slug>.md"
+extracted=""
+
+# Tier 1: marker (best quality if installed)
+if command -v marker_single >/dev/null 2>&1; then
+  tmp=$(mktemp -d)
+  marker_single "<src>" --output_dir "${tmp}" --output_format markdown --disable_image_extraction >/dev/null 2>&1
+  base=$(basename "<src>" .pdf)
+  if [[ -s "${tmp}/${base}/${base}.md" ]]; then
+    mv "${tmp}/${base}/${base}.md" "${out}"
+    extracted=marker
+  fi
+  rm -rf "${tmp}"
+fi
+
+# Tier 2: Claude Code's Read tool (the default — let the LLM extract structure
+# from the PDF directly). Use this if marker isn't installed OR if marker ran
+# but produced an empty/missing file.
+if [[ -z "${extracted}" ]]; then
+  # The LLM (you) reads the PDF via the Read tool and writes the extracted
+  # markdown to ${out}. This is the v0.4.2-and-earlier behavior; preserved
+  # so the skill works without marker installed.
+  extracted=read-tool
+fi
+
+# Tier 3: pdftotext (last resort — invoked manually only if Read tool itself
+# produced unusably bad text on a particular PDF). Runs as:
+#   pdftotext -layout "<src>" "${out}"
+```
+
+**Tradeoffs to know:**
+- marker takes ~10–30s per page on M-series CPU (faster on GPU). For a 20-page paper that's a real wait. Fine for the supervised single-source flow; heavy for batch ingest.
+- marker preserves equations as `$$...$$` LaTeX and tables as proper Markdown tables — the Read tool does neither reliably.
+- marker downloads ~2GB of ML weights on first run (cached at `~/Library/Caches/datalab/models/`).
+- If your installation of marker is behind a corporate proxy that intercepts SSL, `REQUESTS_CA_BUNDLE` must be set in the environment that invokes it (see README's "Optional integrations" section).
 
 ### Step 4 — Read the source. Discuss with user.
 

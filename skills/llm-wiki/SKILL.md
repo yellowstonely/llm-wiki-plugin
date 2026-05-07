@@ -741,7 +741,7 @@ When `/llm-wiki:ingest` receives a non-Markdown source, extract it to Markdown b
 | Format | First try | Fallback | External dep |
 |---|---|---|---|
 | `.md`, `.txt` | Read directly | — | none |
-| `.pdf` | Claude Code's Read tool (handles PDFs natively) | `pdftotext <file> -` | poppler (fallback only) |
+| `.pdf` | **`marker_single`** if installed (best quality — equations as LaTeX, tables as Markdown, multi-column layouts), else Claude Code's Read tool | `pdftotext -layout <file> <out>` | marker-pdf (optional, recommended); poppler (last-resort fallback only) |
 | `.docx`, `.odt`, `.rtf`, `.epub` | `pandoc <file> -t markdown` | — | **pandoc** |
 | `.pptx` | `pandoc -t markdown` | unzip + grep slide XMLs | pandoc |
 | `.xlsx`, `.csv` | `python3 -c "import openpyxl; ..."` one-liner | `xlsx2csv` | `python3` |
@@ -754,6 +754,26 @@ When `/llm-wiki:ingest` receives a non-Markdown source, extract it to Markdown b
 - For URLs: prefer the firecrawl skill (global default for web); fall back to WebFetch for HTML pages; use `curl` + Read for PDFs behind URLs.
 - DOCX, PPTX, RTF, and EPUB all require pandoc. If pandoc is absent, emit a clear error and suggest: "Install pandoc (`brew install pandoc`) or pre-convert this file to Markdown and drop the `.md` into `raw/sources/`."
 - Output of every extraction lands in `raw/clips/<slug>.md`. Originals stay where they are. The converted Markdown is what the wiki workflow reads.
+
+### PDF extraction priority chain (v0.4.3)
+
+For `.pdf` inputs, try this chain in order. Each tier guards on the next being unavailable; falling all the way through to pdftotext is rare but recoverable:
+
+1. **`marker_single`** (preferred when installed). High-quality ML-based extraction — preserves equations as LaTeX (`$$...$$`), tables as Markdown, multi-column layouts, headings. Invocation:
+   ```bash
+   tmp=$(mktemp -d)
+   marker_single "<src>" --output_dir "${tmp}" --output_format markdown --disable_image_extraction
+   # output lives at ${tmp}/<basename>/<basename>.md
+   mv "${tmp}/$(basename '<src>' .pdf)/$(basename '<src>' .pdf).md" "<vault>/raw/clips/<slug>.md"
+   rm -rf "${tmp}"
+   ```
+   Detect with `command -v marker_single`. If marker runs but produces an empty/missing file, treat as failure and fall to tier 2.
+2. **Claude Code's Read tool** (default fallback). The LLM reads the PDF and writes extracted markdown directly to `<vault>/raw/clips/<slug>.md`. This is the v0.4.2-and-earlier behavior; preserves the skill's working state for users who haven't installed marker.
+3. **`pdftotext -layout`** (last resort). Use only if the Read tool fails on a particular PDF (e.g. heavily encrypted/non-standard). Invocation: `pdftotext -layout "<src>" "<vault>/raw/clips/<slug>.md"`.
+
+Speed note: marker takes ~10–30s per page on M-series CPU. For batch ingest of long PDFs, consider whether marker's quality is worth the wait — the user can pre-convert manually with marker outside the skill if they need finer control.
+
+Corporate-proxy note: marker (and other Python tools that download model weights from datalab.to) may need `REQUESTS_CA_BUNDLE` and `SSL_CERT_FILE` set to a CA bundle that includes the corporate-proxy CA. Document in the user's shell profile, not in the skill.
 
 ---
 

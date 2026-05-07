@@ -341,6 +341,26 @@ collection on `/llm-wiki:rm`. Queries at scale use `qmd query -c <vault-name>`
 (hybrid + rerank). qmd's MCP server is not wired in v1 (the plugin calls qmd
 via the shell); MCP wiring is an opt-in future step.
 
+**marker for PDF extraction** — install
+[marker-pdf](https://github.com/VikParuchuri/marker) for high-quality PDF
+ingest. Preserves equations as LaTeX (`$$...$$`), tables as Markdown, and
+multi-column layouts (the things Claude Code's Read tool typically loses on
+arxiv papers). Once `marker_single` is on PATH, the plugin uses it automatically
+for `.pdf` ingest; without it, ingest falls back to the Read tool then
+`pdftotext`. Install:
+
+```bash
+python3 -m venv ~/.venvs/marker
+~/.venvs/marker/bin/pip install marker-pdf
+mkdir -p ~/.local/bin
+ln -sf ~/.venvs/marker/bin/marker_single ~/.local/bin/marker_single
+```
+
+Marker downloads ~2GB of ML weights on first run (cached in
+`~/Library/Caches/datalab/models/`). Conversion is ~10–30s per page on
+M-series CPU. Behind a corporate SSL-intercepting proxy, you may need to set
+`REQUESTS_CA_BUNDLE` to a CA bundle that trusts the corporate gateway CA.
+
 ---
 
 ## Limitations

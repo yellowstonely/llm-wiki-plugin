@@ -240,5 +240,6 @@ Suggested next steps:
   • Configure Obsidian Web Clipper to write to: <absolute path>/raw/clips/
   • Set Obsidian's Settings → Files & links → Default location for new attachments to: raw/assets
   • Optional: install qmd for fast hybrid search at scale (https://github.com/tobi/qmd) — once installed, the skill manages it for you
+  • Optional: install marker-pdf (https://github.com/VikParuchuri/marker) for high-quality PDF extraction — preserves equations as LaTeX, tables as Markdown, multi-column layouts. Once installed, the skill prefers it automatically over Read tool / pdftotext for PDF ingest.
   • Ingest your first source: /llm-wiki:ingest <url-or-path>
 ```

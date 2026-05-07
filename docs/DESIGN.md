@@ -814,7 +814,7 @@ When `/llm-wiki:ingest` is given a non-Markdown source, the skill extracts to Ma
 | Format | First try | Fallback | External dep |
 |---|---|---|---|
 | `.md`, `.txt` | Read directly | — | none |
-| `.pdf` | Claude Code's Read tool (handles PDFs natively) | `pdftotext <file> -` | poppler (only for fallback) |
+| `.pdf` | **`marker_single`** if installed (best quality — equations as LaTeX, tables as Markdown, multi-column), else Claude Code's Read tool | `pdftotext -layout <file> <out>` | marker-pdf (optional, recommended); poppler (last-resort fallback) |
 | `.docx`, `.odt`, `.rtf`, `.epub` | `pandoc <file> -t markdown` | — | **pandoc** |
 | `.pptx` | `pandoc -t markdown` | unzip + grep slide XMLs | pandoc |
 | `.xlsx`, `.csv` | `python3 -c "import openpyxl; ..."` one-liner | `xlsx2csv` | `python3` (use `python3` invocation explicitly — `python` is unreliable cross-platform) |
@@ -826,6 +826,18 @@ The skill's `/llm-wiki:init` post-install message warns: *"For DOCX/PPTX/RTF sup
 If the user attempts to ingest a format requiring a missing dependency, the skill says so and offers a suggestion (e.g. "install pandoc, or pre-convert this DOCX manually and drop the .md into raw/sources/").
 
 Output of every extraction lands in `raw/clips/<slug>.md` (URLs and converted files alike). Originals stay where they are; the converted markdown is what the wiki workflow reads.
+
+### PDF extraction priority chain (v0.4.3)
+
+PDFs use a three-tier priority chain rather than a flat first-try / fallback. Each tier guards on the next being unavailable:
+
+1. **`marker_single`** (preferred when installed). ML-based extraction; preserves LaTeX equations (`$$...$$`), Markdown tables, and multi-column layouts. Detected via `command -v marker_single`. Output is moved from marker's `<output_dir>/<basename>/<basename>.md` into `<vault>/raw/clips/<slug>.md`. If marker runs but produces an empty file, treat as failure and fall through.
+2. **Claude Code's Read tool** (default fallback). The LLM extracts and writes the markdown directly. This is the v0.4.2-and-earlier behavior — preserved so the skill works without marker.
+3. **`pdftotext -layout`** (last resort). Used only when the Read tool itself fails on a particular PDF (e.g. encrypted/non-standard).
+
+The choice between (1) and (2) is non-trivial — marker is significantly slower (~10–30s/page on M-series CPU) and downloads ~2GB of weights on first run. We default to "use marker if it's there" because: (a) for arxiv/research papers, equation/table preservation is decisive, (b) the user has explicit control by simply not installing marker, and (c) the 100-page wiki being queried with qmd is likely full of papers that benefit from marker quality.
+
+Corporate-proxy caveat: marker downloads model weights from `models.datalab.to` on first run; environments behind SSL-intercepting corporate proxies need `REQUESTS_CA_BUNDLE` set to a bundle that includes the corp CA. Documented in the README's optional-integrations section, not enforced by the skill.
 
 ## 2.10 Distribution
 
