@@ -75,8 +75,12 @@ Claude from your free-form description), initializes `index.md`, `log.md`,
 `synthesis.md`, runs `git init`, and registers the vault in
 `~/.llm-wiki/vaults.json`.
 
-- `<name>` — directory name; created in the current working directory (or as an
-  absolute path). Refuses if the directory already exists.
+- `<name>` — directory name or path. **If you pass a bare name** (e.g.
+  `transformer-wiki`), Claude shows the resolved path (`<cwd>/<name>`) and
+  asks for confirmation; you can answer `y`, `n`, or type a different
+  absolute or `~`-prefixed path to redirect (e.g. `~/git/transformer-wiki`).
+  **If you pass a path that starts with `/` or `~`**, it's used as-is with
+  no prompt. Refuses if the directory already exists.
 - `<scenario>` — one of `research | reading | personal | business | general`.
   Defaults to `research`.
 - `"<free-form context>"` — optional prose description of the wiki's domain,

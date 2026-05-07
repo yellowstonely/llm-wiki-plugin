@@ -26,10 +26,41 @@ Parsing rules:
 ### Step 1 — Validate inputs
 
 1. If `<scenario>` is not one of `research | reading | personal | business | general`, emit the **Unknown scenario** error from SKILL.md, list the valid options, and stop. Do NOT silently default.
-2. Resolve the vault path:
-   - Relative name → `<cwd>/<name>`
-   - Absolute path (starts with `/` or `~`) → use as-is (expand `~` to `$HOME`)
-3. If the resolved directory already exists, emit the **Already exists** error from SKILL.md and stop.
+2. Classify the `<name>` argument:
+   - **Bare** — does not start with `/` or `~` (e.g. `transformer`)
+   - **Explicit path** — starts with `/` or `~` (e.g. `~/git/transformer`, `/Users/f.luo/wikis/transformer`)
+3. Resolve the initial `<vault>` path:
+   - Bare → `<cwd>/<name>`
+   - Explicit path → use as-is (expand `~` to `$HOME`)
+
+### Step 1.5 — Confirm path (bare names only)
+
+If the `<name>` argument was **bare**, show the resolved path and ask before scaffolding. This prevents the surprise of a vault landing in whatever happens to be the current working directory.
+
+Print exactly:
+
+```
+Resolved vault path: <vault>
+
+Create vault here? Reply with:
+  • y (or Enter)         — use this path
+  • n                    — abort
+  • a different path     — type an absolute or ~-prefixed path to use instead
+```
+
+Then read the user's response.
+
+- If response is `y`, `Y`, `yes`, or empty → keep `<vault>` as the vault path.
+- If response is `n`, `N`, or `no` → print `Aborted.` and stop. Do not create anything.
+- Otherwise, treat the response as a replacement path:
+  - If it does **not** start with `/` or `~`, print `Path must be absolute (start with / or ~). Aborted.` and stop. (Do not silently re-resolve against `<cwd>` — the whole point of this step is to make path placement explicit.)
+  - Expand `~` to `$HOME` and use the result as `<vault>`.
+
+If the `<name>` argument was an **explicit path**, skip this step entirely — the user already chose a location.
+
+### Step 1.6 — Check for existing directory
+
+If `<vault>` already exists, emit the **Already exists** error from SKILL.md and stop.
 
 ### Step 2 — Create directory tree
 

@@ -256,14 +256,15 @@ The plugin ships 7 slash commands. Each is a thin trigger that invokes the skill
 Bootstrap a new wiki vault.
 
 **Args:**
-- `<name>` (required) — directory name; created in cwd or as absolute path
+- `<name>` (required) — directory name or path. **Bare** name → resolved as `<cwd>/<name>` and the user is prompted to confirm or redirect (added v0.4.1). **Explicit path** (starts with `/` or `~`) → used as-is, no prompt.
 - `<scenario>` (optional, default `research`) — one of: `research | reading | personal | business | general`
 - `"<free-form context>"` (optional) — a sentence or paragraph describing the wiki's domain, headline question, scope. If provided, the skill drafts a richer `purpose.md` and seeds branches in `schema.md`; if absent, both files get scenario-templated stubs with section headers and prompts.
 
 **Workflow:**
 
 1. Validate `<scenario>` is one of the five known scenarios. Default to `research`.
-2. Create the directory (`<cwd>/<name>/` or absolute). Refuse if it already exists.
+1.5. **Path-confirmation prompt (bare names only, v0.4.1):** If `<name>` was bare, show the resolved path and ask `Create vault here? (y / n / different absolute-or-~ path)`. Treat empty/`y` as accept; `n` as abort; any other reply must start with `/` or `~` (else abort with a typed-message error). Skip this step if `<name>` was already an explicit path — the user has already chosen a location.
+2. Refuse if the resolved directory already exists.
 3. Scaffold the standard tree (raw/sources, raw/clips, raw/assets, wiki/{entities,concepts,sources,comparisons,questions}).
 4. **If free-form context provided**:
    - LLM call: draft `purpose.md` (domain, headline question, scope-in/out, initial thesis) and `schema.md` (4–6 starter branches inferred from the domain) following the chosen scenario's structure.
