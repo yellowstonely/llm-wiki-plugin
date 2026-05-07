@@ -34,6 +34,7 @@ Execute the full lint workflow documented in SKILL.md. Checks, in order:
 | 6 | **Synthesis lag** | `synthesis.md`'s `updated:` field is older than the `updated:` of the newest source page |
 | 7 | **Stale claims** | Heuristic LLM judgment: sample source pages with overlapping topics and flag claims that appear contradictory or outdated relative to each other |
 | 8 | **Missing concept pages** | Concepts mentioned (by name or `[[slug]]`) in 3 or more pages with no dedicated page anywhere in `wiki/` (any subdirectory) |
+| 9 | **Purpose drift** | Sources in `wiki/sources/` whose `tags` + `key_claims` significantly diverge from `purpose.md`'s declared `## Domain` / `## Scope — in`. Heuristic: if more than ~30% of source pages don't match the stated scope, flag for review. Compare `## Scope — out` language too — sources that explicitly fall under stated scope-out are clear violations. |
 
 ### 3. Produce a markdown report
 
@@ -43,7 +44,8 @@ Group findings by severity:
   missing required frontmatter, index drift)
 - **Warning** — quality issues that degrade usefulness but don't break structure (dangling pages,
   synthesis lag, schema violations)
-- **Suggestion** — low-confidence or heuristic findings (stale claims, missing concept pages)
+- **Suggestion** — low-confidence or heuristic findings (stale claims, missing concept pages,
+  purpose drift)
 
 Each finding must include:
 - Affected file path (relative to vault root)
@@ -111,3 +113,5 @@ The following issues can be resolved without user judgment:
 - **Missing concept pages** — requires deciding whether the concept warrants its own page
 - **Schema-conformance violations** — a non-declared `branch:` value may be an intentional new branch the
   user wants to add to `schema.md`; auto-removal could silently destroy valid metadata
+- **Purpose drift** — requires deciding whether to update `purpose.md` to reflect the wiki's actual
+  content, or whether the off-scope sources should be relocated to a different vault

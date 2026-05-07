@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Personal marketplace hosting the llm-wiki plugin (Karpathy's LLM Wiki pattern as a Claude Code plugin).",
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "plugins": [
     {
@@ -14,8 +14,8 @@
         "source": "url",
         "url": "https://github.com/yellowstonely/llm-wiki-plugin.git"
       },
-      "description": "Karpathy's LLM Wiki pattern as a Claude Code plugin. Bootstrap, maintain, query, research, and lint plain-markdown personal knowledge bases. Six slash commands (/llm-wiki:init, /llm-wiki:ingest, /llm-wiki:query, /llm-wiki:research, /llm-wiki:lint, /llm-wiki:list) and one auto-loading skill. Obsidian is the reading IDE; Claude does the maintenance.",
-      "version": "0.3.0",
+      "description": "Karpathy's LLM Wiki pattern as a Claude Code plugin. Bootstrap, maintain, query, research, lint, and safely delete plain-markdown personal knowledge bases. Seven slash commands (/llm-wiki:init, /llm-wiki:ingest, /llm-wiki:query, /llm-wiki:research, /llm-wiki:lint, /llm-wiki:list, /llm-wiki:rm) and one auto-loading skill. New in v0.4.0: /llm-wiki:rm safely deletes vaults with hard safety checks; /llm-wiki:ingest detects purpose drift and offers to update purpose.md; /llm-wiki:lint checks for purpose drift across source pages. Obsidian is the reading IDE; Claude does the maintenance.",
+      "version": "0.4.0",
       "strict": true
     }
   ]

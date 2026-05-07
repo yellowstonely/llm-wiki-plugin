@@ -132,6 +132,36 @@ Where `<type>` is:
 - `scaffold` — `--scaffold` mode
 - `re-ingest` — `--re-ingest` flag was set (regardless of mode)
 
+### Step 5.5 — Purpose drift detection (offers to update purpose.md)
+
+After writing wiki pages but before updating the cache, compare the source you just ingested against the vault's `purpose.md`.
+
+1. Read `purpose.md`. Extract the `## Domain` and `## Scope — in` section bodies (or scenario-equivalent sections — e.g. `## Book(s)` for reading, `## Life areas` for personal). Also extract any `## Scope — out` text.
+2. Look at the source page's `tags` and `key_claims` frontmatter you just wrote, plus any new entity/concept pages created in Step 5.
+3. **Judge drift.** Does this source materially expand into a topic NOT covered by the stated scope? The check is heuristic — lean toward **no prompt** for borderline cases. Fire ONLY when:
+   - The source introduces a clearly new sub-area not implied by the stated domain or scope-in (e.g. a transformer-architecture wiki suddenly ingests a paper primarily about diffusion model training), OR
+   - The source explicitly falls under the vault's stated `## Scope — out` (the clearest violation).
+   Do NOT fire on small extensions, natural follow-ons, or tangential mentions of a new topic in an otherwise in-scope source.
+4. **If drift detected**, prompt the user:
+   ```
+   This source seems to expand the wiki's scope into: <new area / drift description>.
+
+   Your purpose.md currently states:
+     Domain:     <excerpt>
+     Scope — in: <excerpt>
+
+   Want me to suggest an update to purpose.md? (y/n/s)
+     (y) yes — draft proposed changes for your review
+     (n) no  — leave purpose.md as-is and continue
+     (s) skip — never prompt again for THIS source (logs a skip entry)
+   ```
+5. **On (y):** Draft a proposed `purpose.md` update — typically expanding `## Scope — in` or `## Domain` with the new area. Show the full updated file or a clear diff. Ask `Save? (y/n/edit)`. On `y` save it; on `edit` open for user edits and confirm; on `n` discard. **Never auto-save — always show and ask.**
+6. **On (n):** Continue silently to Step 6. No change to `purpose.md`.
+7. **On (s):** Write a one-line entry `<source-slug>: skip-drift` to `<vault>/.llm-wiki/drift-skip.txt` (create the file if absent). Future ingests of the same source slug will skip drift detection. Then continue to Step 6.
+8. **If no drift:** Continue silently to Step 6. No prompt.
+
+> Before firing the drift prompt, check `<vault>/.llm-wiki/drift-skip.txt`. If the current source slug appears there, skip drift detection entirely for this run.
+
 ### Step 6 — Update SHA-256 cache
 
 Atomic write to `<vault>/.llm-wiki/ingest-cache.json`:

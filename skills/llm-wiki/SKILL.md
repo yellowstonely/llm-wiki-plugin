@@ -33,13 +33,14 @@ The human works in Obsidian — graph view, plugins, manual edits. The LLM works
 
 ### Slash commands as explicit triggers
 
-All five operations have explicit slash commands:
+All six operations have explicit slash commands:
 
 - `/llm-wiki:init <name> [<scenario>] ["<free-form context>"]` — bootstrap a new vault
 - `/llm-wiki:ingest <url-or-path> [--scaffold] [--re-ingest] [--all]` — ingest a source
 - `/llm-wiki:query <question> [--all | --vaults a,b]` — query the wiki
 - `/llm-wiki:lint` — health-check the current vault
 - `/llm-wiki:list` — print all registered vaults
+- `/llm-wiki:rm <name|path>` — safely delete a vault and de-register it
 
 Each command loads this skill. Natural-language phrasings (e.g., "ingest this paper", "what does the wiki say about X") also auto-trigger the skill via the description above.
 
@@ -532,6 +533,13 @@ Greppable via `grep "^## \[" wiki/log.md | tail -10`.
    - Update `wiki/synthesis.md` only if the source materially changes the cross-cutting position (standard mode only — scaffold mode never updates synthesis). Be explicit about what changed and why.
    - Append to `wiki/log.md`: `## [YYYY-MM-DD] ingest | <title>` (standard), `## [YYYY-MM-DD] scaffold | <title>` (scaffold), or `## [YYYY-MM-DD] re-ingest | <title>` (when `--re-ingest` is set), with 3–5 bullets describing what was written.
 
+5.5. **Purpose drift detection.** After writing wiki pages but before updating the cache, compare the ingested source against `purpose.md`:
+   - Read `purpose.md`. Extract the domain and scope-in sections (or scenario equivalents). Note any scope-out language.
+   - Check `<vault>/.llm-wiki/drift-skip.txt` — if the current source slug appears there, skip this step entirely.
+   - Examine the source page's `tags` + `key_claims` and any new pages created in Step 5. Judge whether the source materially expands into a topic outside the stated scope or explicitly contradicts the stated scope-out. Lean toward **no prompt** for borderline cases.
+   - **If drift detected:** prompt the user with `y/n/s`. On `y`: draft a proposed `purpose.md` update (expanding domain or scope-in), show the full updated file, ask `Save? (y/n/edit)` — never auto-save. On `n`: continue silently. On `s`: append `<source-slug>: skip-drift` to `<vault>/.llm-wiki/drift-skip.txt` (create if absent) and continue.
+   - **If no drift:** continue silently.
+
 6. **Update SHA-256 cache.** Write to `<vault>/.llm-wiki/ingest-cache.json` using this format:
 
    ```json
@@ -643,6 +651,7 @@ Run the following 8 checks against the current vault:
 | Schema conformance | `branch:` values not in `schema.md`'s declared branch list |
 | Synthesis lag | `synthesis.md`'s `updated:` field older than the newest source page |
 | Missing concept pages | Concepts mentioned in 3 or more pages with no dedicated page anywhere in `wiki/` (any subdirectory) (heuristic) |
+| Purpose drift | Sources in `wiki/sources/` whose `tags` + `key_claims` significantly diverge from `purpose.md`'s `## Domain` / `## Scope — in`. If more than ~30% of source pages fall outside the stated scope, flag for review. Sources that explicitly match the stated scope-out are clear violations. (Heuristic — severity: Suggestion.) |
 
 **Report format.** Produce a Markdown report grouped by severity:
 - **Error** — broken structure that will confuse navigation (orphan links, frontmatter invalidity)
@@ -659,6 +668,7 @@ Run the following 8 checks against the current vault:
 **Not auto-fixable** (requires user judgment):
 - Stale-claim resolution (LLM can flag and propose, but user confirms)
 - Missing-concept-page authoring (new page content; ask before writing)
+- Purpose drift — requires deciding whether to update `purpose.md` to match actual content, or relocate off-scope sources to a different vault
 
 After auto-fixes, if qmd is present, run `qmd index --update <vault>`.
 

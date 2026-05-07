@@ -109,6 +109,12 @@ entity and concept pages (typically 5–15 files), updates `index.md`, and
 appends a log entry. `synthesis.md` is updated only when the source materially
 shifts the cross-cutting position.
 
+After writing pages, Claude runs a **purpose drift check**: if the source
+noticeably expands the wiki's scope beyond what `purpose.md` declares, it
+offers to draft an updated `purpose.md` for your review (always shows the
+diff, never auto-saves). You can also skip this prompt permanently for a
+specific source with `s`.
+
 - `--scaffold` — field-map mode: seed many entity/concept stubs (one paragraph
   each) without treating the source as a thesis claim. Useful for surveys and
   awesome-lists.
@@ -178,14 +184,15 @@ orphan `[[wikilinks]]` pointing to missing pages, dangling pages with no
 inbound links, index drift (pages not listed in `index.md`), frontmatter
 validity (missing required fields), schema conformance (branch tags not
 declared in `schema.md`), synthesis lag (`synthesis.md` older than the newest
-source page), and missing concept pages (concepts mentioned in 3+ pages
-without their own page).
+source page), missing concept pages (concepts mentioned in 3+ pages without
+their own page), and **purpose drift** (source pages whose topics significantly
+diverge from `purpose.md`'s declared domain and scope).
 
 Produces a Markdown report grouped by severity (error / warning / suggestion)
 and offers three choices: auto-fix all fixable issues, walk through each one,
 or save the report and defer. Auto-fixable: orphan-link cleanup, frontmatter
 field stubbing, index updates. Not auto-fixable: stale-claim resolution,
-missing concept pages (require judgment).
+missing concept pages, purpose drift (require judgment).
 
 **Example:**
 
@@ -211,6 +218,30 @@ vault names before running `/llm-wiki:query --vaults ...`.
 
 ```
 /llm-wiki:list
+```
+
+---
+
+### `/llm-wiki:rm`
+
+**Syntax:** `/llm-wiki:rm <name|path>`
+
+Safely delete a vault — removes the directory from disk and de-registers it
+from `~/.llm-wiki/vaults.json`. The argument can be a vault name (as shown by
+`/llm-wiki:list`) or an absolute path to the vault directory. Always confirms
+before deleting and checks that the target looks like a real vault (contains
+`purpose.md`). Hard-refuses to delete `/`, `$HOME`, or `/Users` regardless of
+what's in the registry.
+
+If the directory was already removed manually, `/llm-wiki:rm` cleans up the
+registry entry without erroring. There is no undo — the command's printed
+output is the audit trail (no log entry is written because the vault is gone).
+
+**Example:**
+
+```
+/llm-wiki:rm transformer-wiki
+/llm-wiki:rm /Users/me/git/old-research-wiki
 ```
 
 ---

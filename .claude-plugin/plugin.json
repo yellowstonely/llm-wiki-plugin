@@ -1,6 +1,6 @@
 {
   "name": "llm-wiki",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Karpathy's LLM Wiki pattern as a Claude Code plugin. Bootstrap, maintain, query, and lint plain-markdown personal knowledge bases \u2014 Claude does the maintenance, Obsidian is your reading UI.",
   "author": {
     "name": "f.luo"
@@ -24,6 +24,7 @@
       "commands/ingest.md",
       "commands/query.md",
       "commands/research.md",
+      "commands/rm.md",
       "commands/lint.md",
       "commands/list.md"
     ]
