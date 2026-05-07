@@ -23,10 +23,35 @@ Use `--vault <path>` if provided, else walk up from cwd to find `purpose.md` (st
 
 Once the vault root is found, read `<vault>/purpose.md` in full. You will use its headline question and scope fields to triage candidates in Step 2.
 
-**Edge case — unfilled `purpose.md` template:** If `purpose.md` still contains the italicized placeholder prompts (`*<...>*`) from `/llm-wiki:init`, warn the user:
-> "Warning: `purpose.md` appears to be an unfilled template. Triage may be weak — relevance scoring will use the section headings as grounding. Consider filling in `purpose.md` before running research for best results."
+---
 
-Proceed anyway, using whatever substantive content is present.
+## Step 0.5 — Check `purpose.md` filled-state, offer to draft
+
+After loading `purpose.md`, scan its body for unfilled-template markers — specifically count occurrences of the regex `\*<[^>]+>\*` (the placeholder pattern used by templated stubs, e.g. `*<the topic / area being studied>*`).
+
+- **If 3 or more placeholders found** → `purpose.md` is treated as unfilled. Print:
+
+  ```
+  Your purpose.md looks unfilled (still has template placeholders).
+  Triage relevance scores will be weak without it.
+
+  Draft purpose.md from the topic "<topic>" before running research?
+  (y) yes, draft it now and save when I confirm
+  (n) no, proceed with weak triage
+  (e) edit purpose.md myself first, then re-run /llm-wiki:research
+
+  Choice:
+  ```
+
+  Wait for user response.
+
+- **If user picks (y)**: run an LLM call to draft a richer `purpose.md` using the research topic as the seeding context, mirroring what `/llm-wiki:init <name> <scenario> "<context>"` does in its purpose.md-drafting branch (see `commands/init.md` Step 3 free-form-context branch). The scenario is whatever the existing template was based on (detect from `purpose.md`'s section structure — research / reading / personal / business / general). Show the drafted purpose.md to the user. Ask: `Save this and proceed to triage? (y/n/edit)`. On y → save + continue to Step 1. On edit → user revises in their editor, returns, then continue. On n → discard the draft, proceed with weak triage.
+
+- **If user picks (n)**: print `Warning: triage may be weak — purpose.md is still a template. Proceeding anyway.` and continue to Step 1 unchanged.
+
+- **If user picks (e)**: print `OK, edit <vault>/purpose.md and re-run /llm-wiki:research "<topic>"` and exit cleanly without doing the search.
+
+- **If fewer than 3 placeholders found** → `purpose.md` is treated as filled-in. Continue to Step 1 with no prompt (current behavior).
 
 ---
 
@@ -210,7 +235,7 @@ Replace all placeholders with actual counts and titles from this run.
 
 ## Edge cases
 
-**Vault has no `purpose.md` (fresh `/llm-wiki:init`, unfilled template):** Use whatever content is present in `purpose.md` as triage grounding. Warn the user that triage quality will be weak and suggest filling in the template before running research (see Step 0 above).
+**Vault has unfilled `purpose.md` (template stubs present):** Prompt user to draft it now from the research topic, proceed with weak triage, or edit it manually first. See Step 0.5 above.
 
 **Web search returns 0 results:** Report "No candidates found for '<topic>'" and suggest broadening the query. Do not proceed. No log entry is written (see Step 1 above).
 

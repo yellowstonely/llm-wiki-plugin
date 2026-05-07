@@ -597,6 +597,8 @@ Triggered by `/llm-wiki:research "<topic>"`. Reuses ingest infrastructure for th
 
 1. **Detect the vault.** Walk up from cwd to find `purpose.md`, or use `--vault <path>`. Refuse with the "Not a vault" error if not found. Read `purpose.md` for relevance grounding.
 
+1.5. **Check `purpose.md` filled-state; offer to draft if unfilled.** Count occurrences of the regex `\*<[^>]+>\*` in `purpose.md`. If 3 or more placeholders are found, the file is still a template stub: prompt the user with three choices — (y) draft `purpose.md` from the research topic now using the same LLM-drafting logic as `/llm-wiki:init`'s free-form-context branch, (n) proceed with weak triage, or (e) edit `purpose.md` manually and re-run. On (y): draft, show the result, ask for confirmation, save on confirm, then continue. On (n): warn that triage may be weak, then continue. On (e): print the vault path and exit cleanly without searching. If fewer than 3 placeholders are found, `purpose.md` is considered filled and this step is a no-op.
+
 2. **Web search.** Use the firecrawl skill (preferred default per the user's global instructions). Limit to `--max-sources N` (default 20). If firecrawl unavailable, fall back to WebSearch. Parse out `{title, url, snippet}` per candidate.
 
 3. **LLM triage.** For each candidate, score against `purpose.md`:
@@ -619,7 +621,7 @@ Triggered by `/llm-wiki:research "<topic>"`. Reuses ingest infrastructure for th
    ```
 
 **Edge cases:**
-- Vault has no filled-in `purpose.md`: warn user that triage may be weak; suggest filling in `purpose.md` first.
+- Vault has unfilled `purpose.md`: prompt user to either draft it now from the research topic, proceed with weak triage, or edit it manually first. See Step 1.5 above.
 - Search returns 0 results: report and suggest broadening the query.
 - All candidates already-covered: report; suggest `/llm-wiki:query "<topic>"` to see what's already there.
 - Source fetch fails for one URL: continue, summarize failures at the end.
