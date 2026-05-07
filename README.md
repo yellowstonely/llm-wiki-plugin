@@ -349,6 +349,15 @@ same vault simultaneously will race on shared files — don't do that.
 
 ---
 
+## Design docs
+
+For the full design rationale, decisions log, and version history, see:
+
+- [docs/DESIGN.md](docs/DESIGN.md) — pattern background, plugin architecture, command/file specifications, acceptance criteria, open risks
+- [docs/DECISIONS.md](docs/DECISIONS.md) — decisions log (what we considered vs. picked) + version history
+
+---
+
 ## License
 
 MIT
