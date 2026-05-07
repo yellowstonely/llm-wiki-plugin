@@ -112,10 +112,12 @@ If the URL domain + path or the title slug matches an existing source page, mark
 
 ## Step 3 — Present curated list
 
-Sort candidates by relevance score descending (ties: papers before blogs before others). Display:
+**Filter before presenting (added v0.4.5):** Candidates scoring ★ in Step 2 (off-topic / out of scope) are NOT included in the numbered list — they would never be selected for ingest anyway and only add visual noise. They are summarized in a single trailing line.
+
+Sort the remaining candidates (★★ and above) by relevance score descending (ties: papers before blogs before others). Number them sequentially starting at 1, with no gaps. Display:
 
 ```
-Found <N> candidate sources for "<topic>". Triaged against your wiki's headline question:
+Found <N-presented> candidate sources for "<topic>". Triaged against your wiki's headline question:
 
 > "<short excerpt of the headline question from purpose.md>"
 
@@ -137,6 +139,8 @@ Found <N> candidate sources for "<topic>". Triaged against your wiki's headline 
 
 ...
 
+Filtered out: <K> candidates (★, off-topic / out of scope) — e.g. newsletter roundups, unrelated industry news.
+
 Which to ingest? Pass any of:
   • "1,3,5"           — specific indexes
   • "1-5"             — a range
@@ -145,6 +149,8 @@ Which to ingest? Pass any of:
   • "skip blogs"      — exclude by type
   • "none"            — abort without ingesting
 ```
+
+Where `<N-presented>` = count of ★★ and above candidates shown, and `<K>` = count of ★ candidates filtered out (omit the "Filtered out" line entirely if `K == 0`). The "e.g." examples should be 1–3 short representative reasons drawn from the actual filtered candidates' titles or types — keep this terse, one line. Do **not** list the filtered candidates individually.
 
 **Edge case — all already-covered:** If every candidate is marked `[already-covered: ...]`, report:
 > "No new sources for '<topic>' — all candidates already exist in the wiki. Try broadening the query, or run `/llm-wiki:query "<topic>"` to see what's already known."

@@ -428,7 +428,7 @@ Search the web for a topic, triage candidates against the vault's `purpose.md`, 
    - **Relevance** (1–5★): match against the headline question and scope-in.
    - **Type tag**: `paper` | `blog` | `news` | `talk` | `spec` | `other`. arXiv URLs and known academic venues default to ★★★★ unless clearly off-topic.
    - **Already-covered check**: cross-reference URL/title slug against `wiki/sources/*.md`.
-3. **Present + ask.** Display sorted-by-relevance list with stars, type, snippet, already-covered marker. Selection syntax: `1,3,5` / `1-5` / `all` / `all stars 4+` / `skip blogs` / `none`. **Always ask first** — Karpathy-faithful supervised pattern.
+3. **Present + ask.** Display sorted-by-relevance list with stars, type, snippet, already-covered marker. **1-star (off-topic) candidates are excluded from the numbered list** (added v0.4.5) — they appear as a one-line "Filtered out: K candidates …" summary at the bottom only. Selection syntax: `1,3,5` / `1-5` / `all` / `all stars 4+` / `skip blogs` / `none`. **Always ask first** — Karpathy-faithful supervised pattern.
 4. **Per chosen source.** Fetch (firecrawl scrape) → save to `<vault>/raw/clips/<slug>.md` → run the standard ingest workflow (§2.3.2 single-source steps 1–7, including Step 5.5 drift detection). Per-source discussion pause is included unless `--unsupervised`. Cache hits (already-covered) skipped silently.
 5. **Summary log entry.** *In addition to* the per-source `ingest` entries from step 4, append one summary entry:
    ```
