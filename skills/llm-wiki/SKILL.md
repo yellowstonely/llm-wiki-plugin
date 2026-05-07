@@ -33,13 +33,15 @@ The human works in Obsidian — graph view, plugins, manual edits. The LLM works
 
 ### Slash commands as explicit triggers
 
-All six operations have explicit slash commands:
+All operations have explicit slash commands:
 
 - `/llm-wiki:init <name> [<scenario>] ["<free-form context>"]` — bootstrap a new vault
 - `/llm-wiki:ingest <url-or-path> [--scaffold] [--re-ingest] [--all]` — ingest a source
 - `/llm-wiki:query <question> [--all | --vaults a,b]` — query the wiki
+- `/llm-wiki:research "<topic>" [--max-sources N] [--unsupervised]` — web search + LLM triage + ingest
 - `/llm-wiki:lint` — health-check the current vault
 - `/llm-wiki:list` — print all registered vaults
+- `/llm-wiki:sources [--vault <path>]` — list all sources of the active vault
 - `/llm-wiki:rm <name|path>` — safely delete a vault and de-register it
 
 Each command loads this skill. Natural-language phrasings (e.g., "ingest this paper", "what does the wiki say about X") also auto-trigger the skill via the description above.

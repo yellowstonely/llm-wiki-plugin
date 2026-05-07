@@ -6,7 +6,7 @@
 
 A Claude Code plugin that turns Karpathy's [LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) into a reusable skill. Lets you bootstrap, maintain, query, research, and lint *plain-markdown* knowledge bases — one per research topic, life area, or project — directly from Claude Code, with Obsidian as the human-side IDE.
 
-**v0.4.0 scope** (the canonical state documented below) is the full Karpathy spec implemented as a skill: pattern-level workflows in the skill, per-vault config in `purpose.md` + `schema.md`, seven slash commands (`/llm-wiki:init`, `/llm-wiki:ingest`, `/llm-wiki:query`, `/llm-wiki:research`, `/llm-wiki:lint`, `/llm-wiki:list`, `/llm-wiki:rm`), built-in document extraction (PDF / DOCX / PPTX / XLSX), SHA-256 idempotency cache, smart batch ingest, optional [qmd](https://github.com/tobi/qmd) hybrid search at scale, cross-vault query via a registry of known wikis, web-search-based deep research with LLM triage, purpose.md auto-draft offer, and drift detection during ingest and lint.
+**Scope** (the canonical state documented below) is the full Karpathy spec implemented as a skill: pattern-level workflows in the skill, per-vault config in `purpose.md` + `schema.md`, eight slash commands (`/llm-wiki:init`, `/llm-wiki:ingest`, `/llm-wiki:query`, `/llm-wiki:research`, `/llm-wiki:lint`, `/llm-wiki:list`, `/llm-wiki:sources`, `/llm-wiki:rm`), built-in document extraction (PDF / DOCX / PPTX / XLSX, with marker-pdf preferred for PDFs when installed), SHA-256 idempotency cache, smart batch ingest, optional [qmd](https://github.com/tobi/qmd) hybrid search at scale (auto-managed lifecycle), cross-vault query via a registry of known wikis, web-search-based deep research with LLM triage, purpose.md auto-draft offer, and drift detection during ingest and lint.
 
 **Distribution:** Claude Code plugin, marketplace-ready (`marketplace.json` + `plugin.json`), but installs locally first.
 
@@ -198,13 +198,14 @@ The skill ships as a Claude Code plugin. Local install path:
     ├── research.md                      ← /llm-wiki:research slash command
     ├── lint.md                          ← /llm-wiki:lint slash command
     ├── list.md                          ← /llm-wiki:list (small helper, prints vault registry)
+    ├── sources.md                       ← /llm-wiki:sources (list vault's sources)
     └── rm.md                            ← /llm-wiki:rm (safe vault deletion)
 ```
 
 ### Why this structure
 
 - **One skill** rather than multiple (`llm-wiki-ingest`, `llm-wiki-query`, etc.) because the workflows reference each other and read better as one document.
-- **Slash commands** for explicit invocation of each operation. They each invoke the skill (so the workflow is loaded), then run the operation-specific prompt. The plugin ships **1 skill + 7 slash commands**.
+- **Slash commands** for explicit invocation of each operation. They each invoke the skill (so the workflow is loaded), then run the operation-specific prompt. The plugin ships **1 skill + 8 slash commands**.
 - **Both invocation paths converge** — `/llm-wiki:ingest <url>` and "ingest this url" both end up running the same workflow because the skill auto-loads via description match in either case.
 
 ### Marketplace
@@ -249,7 +250,7 @@ The `SKILL.md` is essentially the same content as our reference `~/git/llm-world
 
 ## 2.3 Slash Commands
 
-The plugin ships 7 slash commands. Each is a thin trigger that invokes the skill and runs an operation-specific prompt.
+The plugin ships 8 slash commands. Each is a thin trigger that invokes the skill and runs an operation-specific prompt.
 
 ### 2.3.1 `/llm-wiki:init <name> [<scenario>] ["<free-form context>"]`
 
@@ -465,6 +466,24 @@ Safely delete a vault and de-register it from `~/.llm-wiki/vaults.json`.
 - No log entry is created (the vault is gone).
 - The command is intentionally narrow — it does not cascade-delete pages from other vaults that cited this vault (cross-vault citation cleanup is manual).
 - Registry write-path is now symmetric: `/llm-wiki:init` creates entries; `/llm-wiki:rm` removes them.
+
+### 2.3.8 `/llm-wiki:sources [--vault <path>]`
+
+Read-only list of all sources in the active vault. Added v0.4.4.
+
+**Workflow:**
+
+1. Detect vault (cwd-walk to `purpose.md`, or use `--vault`).
+2. Enumerate `<vault>/wiki/sources/*.md`.
+3. For each page, parse YAML frontmatter and extract `title`, `year`, `authors`, `branch` (all optional — show `—` if missing).
+4. Render a Markdown table sorted by slug, plus a one-line summary (`N sources · K branches · last ingested: <date>`).
+5. If `wiki/sources/` is empty or absent, print a "no sources yet" hint pointing at `/llm-wiki:ingest` and `/llm-wiki:research`.
+
+**Design constraints:**
+- Read-only: no log entry, no file writes, no qmd reindex.
+- Single-vault only — no `--all` flag in v1.
+- Lists only `wiki/sources/`; other curated page types and `raw/sources/` are deliberately not enumerated.
+- Malformed-frontmatter pages are still listed (with `—` for missing fields) plus a footer count and a `/llm-wiki:lint` suggestion.
 
 ## 2.4 Vault Files
 
@@ -846,7 +865,7 @@ Corporate-proxy caveat: marker downloads model weights from `models.datalab.to` 
 ```json
 {
   "name": "llm-wiki",
-  "version": "0.4.0",
+  "version": "0.4.4",
   "description": "Karpathy's LLM Wiki pattern, as a Claude Code plugin. Bootstrap, maintain, query, research, and lint plain-markdown personal knowledge bases.",
   "author": {"name": "yellowstonely"},
   "components": {
@@ -858,6 +877,7 @@ Corporate-proxy caveat: marker downloads model weights from `models.datalab.to` 
       "commands/research.md",
       "commands/lint.md",
       "commands/list.md",
+      "commands/sources.md",
       "commands/rm.md"
     ]
   }
@@ -922,7 +942,7 @@ A v1 release is complete when:
 ### 4.1 Plugin layout
 - [ ] `~/.claude/plugins/llm-wiki/` exists with `plugin.json`, `marketplace.json`, `README.md`
 - [ ] `skills/llm-wiki/SKILL.md` is present and well-formed
-- [ ] All 7 slash commands (`/llm-wiki:init`, `/llm-wiki:ingest`, `/llm-wiki:query`, `/llm-wiki:research`, `/llm-wiki:lint`, `/llm-wiki:list`, `/llm-wiki:rm`) exist as `commands/*.md`
+- [ ] All 8 slash commands (`/llm-wiki:init`, `/llm-wiki:ingest`, `/llm-wiki:query`, `/llm-wiki:research`, `/llm-wiki:lint`, `/llm-wiki:list`, `/llm-wiki:sources`, `/llm-wiki:rm`) exist as `commands/*.md`
 - [ ] Plugin loads in Claude Code without errors
 
 ### 4.2 `/llm-wiki:init`
@@ -968,7 +988,7 @@ A v1 release is complete when:
 - [ ] No hard dependency on specific Claude Code version beyond what `plugin.json` declares.
 
 ### 4.8 Documentation
-- [ ] `README.md` covers install, scenarios, all 7 slash commands with examples
+- [ ] `README.md` covers install, scenarios, all 8 slash commands with examples
 - [ ] `SKILL.md` is self-contained: someone reading it cold understands the pattern + workflows
 - [ ] Examples reference our two existing wikis (`~/git/transformer-wiki/`, `~/git/llm-world-models-wiki/`) where appropriate
 
@@ -1072,6 +1092,7 @@ Plugin (lives once in ~/.claude/plugins/llm-wiki/):
   commands/research.md
   commands/lint.md
   commands/list.md
+  commands/sources.md
   commands/rm.md
 
 Per-user (lives once in ~/.llm-wiki/):

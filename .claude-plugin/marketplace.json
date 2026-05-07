@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Personal marketplace hosting the llm-wiki plugin (Karpathy's LLM Wiki pattern as a Claude Code plugin).",
-    "version": "0.4.3"
+    "version": "0.4.4"
   },
   "plugins": [
     {
@@ -14,8 +14,8 @@
         "source": "url",
         "url": "https://github.com/yellowstonely/llm-wiki-plugin.git"
       },
-      "description": "Karpathy's LLM Wiki pattern as a Claude Code plugin. Bootstrap, maintain, query, research, lint, and safely delete plain-markdown personal knowledge bases. Seven slash commands (/llm-wiki:init, /llm-wiki:ingest, /llm-wiki:query, /llm-wiki:research, /llm-wiki:lint, /llm-wiki:list, /llm-wiki:rm) and one auto-loading skill. New in v0.4.3: PDF ingest prefers marker-pdf (marker_single) when installed — preserves equations as LaTeX, tables as Markdown, multi-column layouts. Falls back to Read tool then pdftotext if marker not available. v0.4.2: skill auto-manages the optional qmd collection lifecycle. v0.4.1: /llm-wiki:init confirms the resolved path before scaffolding when a bare name is given. v0.4.0: /llm-wiki:rm safely deletes vaults with hard safety checks; /llm-wiki:ingest detects purpose drift and offers to update purpose.md; /llm-wiki:lint checks for purpose drift across source pages. Obsidian is the reading IDE; Claude does the maintenance.",
-      "version": "0.4.3",
+      "description": "Karpathy's LLM Wiki pattern as a Claude Code plugin. Bootstrap, maintain, query, research, lint, and safely delete plain-markdown personal knowledge bases. Eight slash commands (/llm-wiki:init, /llm-wiki:ingest, /llm-wiki:query, /llm-wiki:research, /llm-wiki:lint, /llm-wiki:list, /llm-wiki:sources, /llm-wiki:rm) and one auto-loading skill. New in v0.4.4: /llm-wiki:sources prints a table of all ingested sources in the active vault (slug, title, year, authors, branch). v0.4.3: PDF ingest prefers marker-pdf when installed. v0.4.2: skill auto-manages the optional qmd collection lifecycle. v0.4.1: /llm-wiki:init confirms the resolved path before scaffolding when a bare name is given. v0.4.0: /llm-wiki:rm safely deletes vaults with hard safety checks; /llm-wiki:ingest detects purpose drift and offers to update purpose.md; /llm-wiki:lint checks for purpose drift across source pages. Obsidian is the reading IDE; Claude does the maintenance.",
+      "version": "0.4.4",
       "strict": true
     }
   ]

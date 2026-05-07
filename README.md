@@ -227,6 +227,28 @@ vault names before running `/llm-wiki:query --vaults ...`.
 
 ---
 
+### `/llm-wiki:sources`
+
+**Syntax:** `/llm-wiki:sources [--vault <path>]`
+
+List all sources ingested into the active vault, with title, year, authors,
+and branch tag pulled from each source page's frontmatter. Read-only — does
+not modify the vault. Walks up from cwd to find the vault, or use `--vault`
+to specify one explicitly.
+
+**Output:** a Markdown table sorted by slug, plus a one-line summary of
+counts. Empty vault prints a "no sources yet" hint pointing at
+`/llm-wiki:ingest` and `/llm-wiki:research`.
+
+**Example:**
+
+```
+/llm-wiki:sources
+/llm-wiki:sources --vault ~/git/transformer-wiki
+```
+
+---
+
 ### `/llm-wiki:rm`
 
 **Syntax:** `/llm-wiki:rm <name|path>`
