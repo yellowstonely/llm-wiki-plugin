@@ -51,23 +51,23 @@ PDFs, Markdown, plain text, and HTML work without either dependency.
 ## Quickstart
 
 ```
-/wiki-init transformer-wiki research "deep dive on transformer architectures, attention mechanisms, and scaling laws - headline question: what made the transformer design win?"
-/wiki-ingest https://arxiv.org/pdf/1706.03762
-/wiki-query "how does attention compare to gated recurrence?"
-/wiki-research "scaling laws"  # find more sources via web search
+/llm-wiki:init transformer-wiki research "deep dive on transformer architectures, attention mechanisms, and scaling laws - headline question: what made the transformer design win?"
+/llm-wiki:ingest https://arxiv.org/pdf/1706.03762
+/llm-wiki:query "how does attention compare to gated recurrence?"
+/llm-wiki:research "scaling laws"  # find more sources via web search
 ```
 
-After `/wiki-init`, open the vault directory in Obsidian. Run `/wiki-ingest`
-for each source. Use `/wiki-query` to ask questions; non-trivial answers can be
+After `/llm-wiki:init`, open the vault directory in Obsidian. Run `/llm-wiki:ingest`
+for each source. Use `/llm-wiki:query` to ask questions; non-trivial answers can be
 filed back into the wiki automatically.
 
 ---
 
 ## Commands
 
-### `/wiki-init`
+### `/llm-wiki:init`
 
-**Syntax:** `/wiki-init <name> [<scenario>] ["<free-form context>"]`
+**Syntax:** `/llm-wiki:init <name> [<scenario>] ["<free-form context>"]`
 
 Bootstrap a new wiki vault. Creates the full directory tree, scaffolds
 `purpose.md` and `schema.md` (either from a scenario template or drafted by
@@ -88,14 +88,14 @@ Claude from your free-form description), initializes `index.md`, `log.md`,
 **Example:**
 
 ```
-/wiki-init fitness-wiki personal "tracking strength training and nutrition - goal: identify what actually moves the needle on progressive overload"
+/llm-wiki:init fitness-wiki personal "tracking strength training and nutrition - goal: identify what actually moves the needle on progressive overload"
 ```
 
 ---
 
-### `/wiki-ingest`
+### `/llm-wiki:ingest`
 
-**Syntax:** `/wiki-ingest <url-or-path> [--scaffold] [--re-ingest] [--all] [--vault <path>]`
+**Syntax:** `/llm-wiki:ingest <url-or-path> [--scaffold] [--re-ingest] [--all] [--vault <path>]`
 
 Ingest a source into the current vault. Resolves the source (URL fetch,
 copy from outside the vault, or use as-is if already inside), computes a
@@ -121,16 +121,16 @@ shifts the cross-cutting position.
 **Example:**
 
 ```
-/wiki-ingest raw/sources/vaswani-2017-attention.pdf
-/wiki-ingest https://lilianweng.github.io/posts/2023-01-27-the-transformer-family-v2/
-/wiki-ingest --all
+/llm-wiki:ingest raw/sources/vaswani-2017-attention.pdf
+/llm-wiki:ingest https://lilianweng.github.io/posts/2023-01-27-the-transformer-family-v2/
+/llm-wiki:ingest --all
 ```
 
 ---
 
-### `/wiki-query`
+### `/llm-wiki:query`
 
-**Syntax:** `/wiki-query <question> [--all | --vaults a,b] [--vault <path>]`
+**Syntax:** `/llm-wiki:query <question> [--all | --vaults a,b] [--vault <path>]`
 
 Answer a question against the wiki. Reads `index.md` first, selects relevant
 pages by index scan (or `qmd search` if qmd is installed and the wiki has
@@ -147,31 +147,31 @@ back as a new page — and asks before writing.
 **Example:**
 
 ```
-/wiki-query "what are the main critiques of scaled dot-product attention?"
-/wiki-query --vaults transformer-wiki,llm-world-models-wiki "do transformers learn world models?"
+/llm-wiki:query "what are the main critiques of scaled dot-product attention?"
+/llm-wiki:query --vaults transformer-wiki,llm-world-models-wiki "do transformers learn world models?"
 ```
 
 ---
 
-### `/wiki-research`
+### `/llm-wiki:research`
 
-**Syntax:** `/wiki-research "<topic>" [--max-sources N] [--unsupervised] [--vault <path>]`
+**Syntax:** `/llm-wiki:research "<topic>" [--max-sources N] [--unsupervised] [--vault <path>]`
 
-Searches the web for the topic, triages candidates against the vault's `purpose.md`, presents a curated list with star ratings, and ingests the chosen ones. Useful for bootstrapping a fresh wiki ("/wiki-init transformer-wiki research" then "/wiki-research 'scaling laws in transformer training'") or expanding coverage of an existing one. Per-source supervision pauses are on by default; pass `--unsupervised` to batch through.
+Searches the web for the topic, triages candidates against the vault's `purpose.md`, presents a curated list with star ratings, and ingests the chosen ones. Useful for bootstrapping a fresh wiki ("/llm-wiki:init transformer-wiki research" then "/llm-wiki:research 'scaling laws in transformer training'") or expanding coverage of an existing one. Per-source supervision pauses are on by default; pass `--unsupervised` to batch through.
 
 **Example:**
 
 ```
-/wiki-research "scaling laws in transformer training"
+/llm-wiki:research "scaling laws in transformer training"
 ```
 
 Returns a triaged list of papers/blogs/news/etc. with relevance ratings; you pick which to ingest.
 
 ---
 
-### `/wiki-lint`
+### `/llm-wiki:lint`
 
-**Syntax:** `/wiki-lint [--vault <path>]`
+**Syntax:** `/llm-wiki:lint [--vault <path>]`
 
 Health-check the current vault. Walks every page in `wiki/`, checks for:
 orphan `[[wikilinks]]` pointing to missing pages, dangling pages with no
@@ -190,7 +190,7 @@ missing concept pages (require judgment).
 **Example:**
 
 ```
-/wiki-lint
+/llm-wiki:lint
 ```
 
 Lint operates on the cwd-detected vault only (or `--vault <path>`). Cross-vault
@@ -198,19 +198,19 @@ lint is not in v1.
 
 ---
 
-### `/wiki-list`
+### `/llm-wiki:list`
 
-**Syntax:** `/wiki-list`
+**Syntax:** `/llm-wiki:list`
 
 Print the contents of `~/.llm-wiki/vaults.json` in a readable format. Shows
 each registered vault name, path, date added, and purpose excerpt. Marks
 vaults whose paths no longer exist on disk. Useful when you can't remember
-vault names before running `/wiki-query --vaults ...`.
+vault names before running `/llm-wiki:query --vaults ...`.
 
 **Example:**
 
 ```
-/wiki-list
+/llm-wiki:list
 ```
 
 ---
@@ -218,7 +218,7 @@ vault names before running `/wiki-query --vaults ...`.
 ## Scenarios
 
 Five scenario presets ship with the plugin. The scenario you choose at
-`/wiki-init` determines the default page types and the structure of the
+`/llm-wiki:init` determines the default page types and the structure of the
 `purpose.md` and `schema.md` templates. All scenarios share `index.md`,
 `log.md`, and `synthesis.md`.
 
@@ -234,7 +234,7 @@ Five scenario presets ship with the plugin. The scenario you choose at
 
 ## Vault layout
 
-`/wiki-init` creates this tree:
+`/llm-wiki:init` creates this tree:
 
 ```
 <vault>/
@@ -256,7 +256,7 @@ Five scenario presets ship with the plugin. The scenario you choose at
 ├── .obsidian/              ← created by Obsidian on first open (not by skill)
 ├── .llm-wiki/
 │   └── ingest-cache.json   ← SHA-256 idempotency cache (skill sidecar, rebuildable)
-└── .git/                   ← initialized by /wiki-init
+└── .git/                   ← initialized by /llm-wiki:init
 ```
 
 The vault is detected by the presence of `purpose.md` in the current directory
@@ -288,7 +288,7 @@ as Karpathy recommends.
 ## Optional integrations
 
 **Obsidian Web Clipper** — configure the clipper to write to `raw/clips/` in
-your vault. The next `/wiki-ingest --all` will pick up the saved clips as
+your vault. The next `/llm-wiki:ingest --all` will pick up the saved clips as
 unprocessed sources.
 
 **Obsidian attachment folder** — point Obsidian's "Default attachment folder"
@@ -307,7 +307,7 @@ calls it via the shell); MCP wiring is an opt-in future step.
 
 v1 is intentionally narrow. There is no background daemon or file watcher —
 the skill runs inside a Claude Code session and requires explicit invocation
-for each operation. `/wiki-lint` operates on one vault at a time; cross-vault
+for each operation. `/llm-wiki:lint` operates on one vault at a time; cross-vault
 contradiction detection is deferred to a future version. Vault discovery is
 explicit (registry-based), not automatic filesystem scanning. There is no async
 review queue — the supervised pause per source is the intended workflow. Vector

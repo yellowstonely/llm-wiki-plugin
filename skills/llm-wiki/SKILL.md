@@ -23,7 +23,7 @@ The pattern rests on three layers:
 - **Query** — ask a question; the LLM reads `wiki/index.md` first, drills into relevant pages, synthesizes an answer with `[[wikilink]]` citations bottoming out at `wiki/sources/` pages. Non-trivial answers can be filed back as new wiki pages.
 - **Lint** — health check: orphan links, dangling pages, index drift, frontmatter validity, schema conformance, synthesis lag, stale claims, missing concept pages. Produces a severity-grouped report with fix options.
 
-Plus bootstrap: `/wiki-init` creates a new vault from scratch, scaffolds the directory tree, writes `purpose.md` and `schema.md` templates or LLM-drafted content from free-form context, runs `git init`, and registers the vault in the user-level registry at `~/.llm-wiki/vaults.json`.
+Plus bootstrap: `/llm-wiki:init` creates a new vault from scratch, scaffolds the directory tree, writes `purpose.md` and `schema.md` templates or LLM-drafted content from free-form context, runs `git init`, and registers the vault in the user-level registry at `~/.llm-wiki/vaults.json`.
 
 ### The operating philosophy
 
@@ -35,11 +35,11 @@ The human works in Obsidian — graph view, plugins, manual edits. The LLM works
 
 All five operations have explicit slash commands:
 
-- `/wiki-init <name> [<scenario>] ["<free-form context>"]` — bootstrap a new vault
-- `/wiki-ingest <url-or-path> [--scaffold] [--re-ingest] [--all]` — ingest a source
-- `/wiki-query <question> [--all | --vaults a,b]` — query the wiki
-- `/wiki-lint` — health-check the current vault
-- `/wiki-list` — print all registered vaults
+- `/llm-wiki:init <name> [<scenario>] ["<free-form context>"]` — bootstrap a new vault
+- `/llm-wiki:ingest <url-or-path> [--scaffold] [--re-ingest] [--all]` — ingest a source
+- `/llm-wiki:query <question> [--all | --vaults a,b]` — query the wiki
+- `/llm-wiki:lint` — health-check the current vault
+- `/llm-wiki:list` — print all registered vaults
 
 Each command loads this skill. Natural-language phrasings (e.g., "ingest this paper", "what does the wiki say about X") also auto-trigger the skill via the description above.
 
@@ -67,14 +67,14 @@ Each command loads this skill. Natural-language phrasings (e.g., "ingest this pa
 ├── .obsidian/                          ← Obsidian creates on first vault-open (NOT skill)
 ├── .llm-wiki/                          ← skill sidecar, hidden, rebuildable
 │   └── ingest-cache.json               ← SHA-256 idempotency cache
-└── .git/                               ← skill runs `git init` during /wiki-init
+└── .git/                               ← skill runs `git init` during /llm-wiki:init
 ```
 
 ---
 
 ## Vault detection
 
-**Vault detection.** A directory is an llm-wiki vault if it contains `purpose.md` at its root. To detect the active vault, walk up from cwd to the nearest directory containing `purpose.md` (stopping at `$HOME` or the git root). If none is found AND the user invokes any operation other than `/wiki-init`, refuse politely and point at `/wiki-init` or `--vault <path>`.
+**Vault detection.** A directory is an llm-wiki vault if it contains `purpose.md` at its root. To detect the active vault, walk up from cwd to the nearest directory containing `purpose.md` (stopping at `$HOME` or the git root). If none is found AND the user invokes any operation other than `/llm-wiki:init`, refuse politely and point at `/llm-wiki:init` or `--vault <path>`.
 
 Any operation that accepts `--vault <path>` uses the specified path directly without walking.
 
@@ -153,7 +153,7 @@ All scenarios share `wiki/index.md`, `wiki/log.md`, `wiki/synthesis.md`. Only `p
 
 ### research scenario template
 
-When `/wiki-init` runs with scenario `research` and no free-form context, write this content to `purpose.md`:
+When `/llm-wiki:init` runs with scenario `research` and no free-form context, write this content to `purpose.md`:
 
 ```markdown
 # Purpose
@@ -211,7 +211,7 @@ And write this content to `schema.md`:
 
 ### reading scenario template
 
-When `/wiki-init` runs with scenario `reading` and no free-form context, write this content to `purpose.md`:
+When `/llm-wiki:init` runs with scenario `reading` and no free-form context, write this content to `purpose.md`:
 
 ```markdown
 # Purpose
@@ -271,7 +271,7 @@ And write this content to `schema.md`:
 
 ### personal scenario template
 
-When `/wiki-init` runs with scenario `personal` and no free-form context, write this content to `purpose.md`:
+When `/llm-wiki:init` runs with scenario `personal` and no free-form context, write this content to `purpose.md`:
 
 ```markdown
 # Purpose
@@ -332,7 +332,7 @@ And write this content to `schema.md`:
 
 ### business scenario template
 
-When `/wiki-init` runs with scenario `business` and no free-form context, write this content to `purpose.md`:
+When `/llm-wiki:init` runs with scenario `business` and no free-form context, write this content to `purpose.md`:
 
 ```markdown
 # Purpose
@@ -394,7 +394,7 @@ And write this content to `schema.md`:
 
 ### general scenario template
 
-When `/wiki-init` runs with scenario `general` and no free-form context, write this content to `purpose.md`:
+When `/llm-wiki:init` runs with scenario `general` and no free-form context, write this content to `purpose.md`:
 
 ```markdown
 # Purpose
@@ -475,11 +475,11 @@ Within a single vault, use bare wikilinks: `[[page-slug]]`. Across vaults (only 
 
 ### When the registry is read
 
-Only `/wiki-query --all` and `/wiki-query --vaults a,b` read the registry. Single-vault queries never consult it.
+Only `/llm-wiki:query --all` and `/llm-wiki:query --vaults a,b` read the registry. Single-vault queries never consult it.
 
 ### When the registry is written
 
-Only `/wiki-init` writes to the registry — it appends an entry for the newly created vault (creating `~/.llm-wiki/vaults.json` if it doesn't exist). The user can also hand-edit the file at any time.
+Only `/llm-wiki:init` writes to the registry — it appends an entry for the newly created vault (creating `~/.llm-wiki/vaults.json` if it doesn't exist). The user can also hand-edit the file at any time.
 
 ### Missing paths
 
@@ -495,14 +495,14 @@ Every operation appends to `wiki/log.md` with the format `## [YYYY-MM-DD] <type>
 
 | Type | When emitted |
 |---|---|
-| `init` | `/wiki-init` creates a new vault |
-| `ingest` | `/wiki-ingest` adds a source in standard mode |
-| `scaffold` | `/wiki-ingest --scaffold` files a source as a field-map |
-| `re-ingest` | `/wiki-ingest --re-ingest` re-processes an already-ingested source |
-| `query` | `/wiki-query` (single-vault) is run; entry appended even if no answer is filed back |
-| `cross-query` | `/wiki-query --all` or `/wiki-query --vaults a,b` is run; entry appended to each queried vault's log |
-| `research` | `/wiki-research` is run; one summary entry per research session, in addition to per-source `ingest` entries |
-| `lint` | `/wiki-lint` is run; one entry summarizing the issue count and any auto-fixes |
+| `init` | `/llm-wiki:init` creates a new vault |
+| `ingest` | `/llm-wiki:ingest` adds a source in standard mode |
+| `scaffold` | `/llm-wiki:ingest --scaffold` files a source as a field-map |
+| `re-ingest` | `/llm-wiki:ingest --re-ingest` re-processes an already-ingested source |
+| `query` | `/llm-wiki:query` (single-vault) is run; entry appended even if no answer is filed back |
+| `cross-query` | `/llm-wiki:query --all` or `/llm-wiki:query --vaults a,b` is run; entry appended to each queried vault's log |
+| `research` | `/llm-wiki:research` is run; one summary entry per research session, in addition to per-source `ingest` entries |
+| `lint` | `/llm-wiki:lint` is run; one entry summarizing the issue count and any auto-fixes |
 
 Greppable via `grep "^## \[" wiki/log.md | tail -10`.
 
@@ -589,9 +589,9 @@ Greppable via `grep "^## \[" wiki/log.md | tail -10`.
 
 ### Research workflow
 
-Triggered by `/wiki-research "<topic>"`. Reuses ingest infrastructure for the per-source heavy lifting; the unique parts are web search and triage.
+Triggered by `/llm-wiki:research "<topic>"`. Reuses ingest infrastructure for the per-source heavy lifting; the unique parts are web search and triage.
 
-**Mode:** by default, every selected source goes through the standard ingest workflow including the discussion-pause per source. Pass `--unsupervised` on `/wiki-research` to skip per-source pauses (the curated-list confirmation in Step 4 is then the only supervision checkpoint).
+**Mode:** by default, every selected source goes through the standard ingest workflow including the discussion-pause per source. Pass `--unsupervised` on `/llm-wiki:research` to skip per-source pauses (the curated-list confirmation in Step 4 is then the only supervision checkpoint).
 
 **Steps:**
 
@@ -621,7 +621,7 @@ Triggered by `/wiki-research "<topic>"`. Reuses ingest infrastructure for the pe
 **Edge cases:**
 - Vault has no filled-in `purpose.md`: warn user that triage may be weak; suggest filling in `purpose.md` first.
 - Search returns 0 results: report and suggest broadening the query.
-- All candidates already-covered: report; suggest `/wiki-query "<topic>"` to see what's already there.
+- All candidates already-covered: report; suggest `/llm-wiki:query "<topic>"` to see what's already there.
 - Source fetch fails for one URL: continue, summarize failures at the end.
 - User selects "none" or aborts: do nothing, no log entry.
 
@@ -668,7 +668,7 @@ After auto-fixes, if qmd is present, run `qmd index --update <vault>`.
 
 ### Detection
 
-When executing `/wiki-query`, check `which qmd`. If absent, proceed silently with index-scan navigation. Do not error or warn — qmd is optional.
+When executing `/llm-wiki:query`, check `which qmd`. If absent, proceed silently with index-scan navigation. Do not error or warn — qmd is optional.
 
 ### When to invoke qmd
 
@@ -682,9 +682,9 @@ The 100-page threshold matches Karpathy's gist recommendation.
 
 ### Reindex hook
 
-After every successful `/wiki-ingest`, if qmd is on PATH, run `qmd index --update <vault>`. This is cheap when the index is warm.
+After every successful `/llm-wiki:ingest`, if qmd is on PATH, run `qmd index --update <vault>`. This is cheap when the index is warm.
 
-After `/wiki-lint`'s auto-fix phase (which may delete pages), run `qmd index --update <vault>` again.
+After `/llm-wiki:lint`'s auto-fix phase (which may delete pages), run `qmd index --update <vault>` again.
 
 ### v1: CLI only via Bash
 
@@ -692,13 +692,13 @@ Call qmd via the Bash tool. qmd's MCP server is not wired into the plugin in v1.
 
 ### Install note
 
-The skill does not install qmd. The `/wiki-init` post-install summary includes: *"Optional: install qmd (https://github.com/tobi/qmd) for fast hybrid search once your wiki passes ~100 pages."*
+The skill does not install qmd. The `/llm-wiki:init` post-install summary includes: *"Optional: install qmd (https://github.com/tobi/qmd) for fast hybrid search once your wiki passes ~100 pages."*
 
 ---
 
 ## Document extraction
 
-When `/wiki-ingest` receives a non-Markdown source, extract it to Markdown before reading. Use this priority table:
+When `/llm-wiki:ingest` receives a non-Markdown source, extract it to Markdown before reading. Use this priority table:
 
 | Format | First try | Fallback | External dep |
 |---|---|---|---|
@@ -721,14 +721,14 @@ When `/wiki-ingest` receives a non-Markdown source, extract it to Markdown befor
 
 ## Error handling
 
-**Not a vault.** When any operation other than `/wiki-init` is invoked outside a vault (no `purpose.md` found up to `$HOME` or git root): "This directory is not an llm-wiki vault — no `purpose.md` found. Either `cd` into a vault directory, pass `--vault <path>`, or run `/wiki-init <name>` to create a new one."
+**Not a vault.** When any operation other than `/llm-wiki:init` is invoked outside a vault (no `purpose.md` found up to `$HOME` or git root): "This directory is not an llm-wiki vault — no `purpose.md` found. Either `cd` into a vault directory, pass `--vault <path>`, or run `/llm-wiki:init <name>` to create a new one."
 
-**Already exists.** When `/wiki-init` targets a directory that already exists: "Directory `<name>` already exists. `/wiki-init` will not overwrite an existing directory. Choose a different name, or delete the directory first if you want to start fresh."
+**Already exists.** When `/llm-wiki:init` targets a directory that already exists: "Directory `<name>` already exists. `/llm-wiki:init` will not overwrite an existing directory. Choose a different name, or delete the directory first if you want to start fresh."
 
 **Missing extraction tool.** When ingest needs pandoc, python3, or poppler and they are absent: "Cannot extract `<file>` — requires `<tool>` which is not installed. Install it (`brew install <tool>`) or pre-convert the file to Markdown and drop the `.md` into `raw/sources/`."
 
 **Cache hit.** When the source SHA-256 matches the cache and `--re-ingest` is not set: "Source `<file>` was already ingested (hash unchanged). Pass `--re-ingest` to force re-processing."
 
-**Unknown scenario.** When `/wiki-init` receives a scenario name that isn't one of `research | reading | personal | business | general`, list the valid scenarios and ask the user to retry. Do NOT silently default — silent defaults mask typos.
+**Unknown scenario.** When `/llm-wiki:init` receives a scenario name that isn't one of `research | reading | personal | business | general`, list the valid scenarios and ask the user to retry. Do NOT silently default — silent defaults mask typos.
 
 Example response: `"<scenario>" isn't a known scenario. Valid choices: research, reading, personal, business, general. Re-run with one of these.`

@@ -4,7 +4,7 @@ allowed-tools: Bash, Read, Write, Edit, Skill, Glob, Grep, WebFetch
 argument-hint: "<topic>" [--max-sources N] [--unsupervised] [--vault <path>]
 ---
 
-You are running `/wiki-research`. Use the `llm-wiki` skill (`@skills/llm-wiki/SKILL.md`) for vault layout, page conventions, ingest workflow, and document-extraction tooling. The skill is the authoritative procedure reference; this slash command is the entry point.
+You are running `/llm-wiki:research`. Use the `llm-wiki` skill (`@skills/llm-wiki/SKILL.md`) for vault layout, page conventions, ingest workflow, and document-extraction tooling. The skill is the authoritative procedure reference; this slash command is the entry point.
 
 **Args:** $ARGUMENTS
 
@@ -19,11 +19,11 @@ You are running `/wiki-research`. Use the `llm-wiki` skill (`@skills/llm-wiki/SK
 
 ## Step 0 — Detect the vault
 
-Use `--vault <path>` if provided, else walk up from cwd to find `purpose.md` (stopping at `$HOME` or git root). If not found, refuse with the "Not a vault" error from SKILL.md and suggest `/wiki-init` or `--vault <path>`.
+Use `--vault <path>` if provided, else walk up from cwd to find `purpose.md` (stopping at `$HOME` or git root). If not found, refuse with the "Not a vault" error from SKILL.md and suggest `/llm-wiki:init` or `--vault <path>`.
 
 Once the vault root is found, read `<vault>/purpose.md` in full. You will use its headline question and scope fields to triage candidates in Step 2.
 
-**Edge case — unfilled `purpose.md` template:** If `purpose.md` still contains the italicized placeholder prompts (`*<...>*`) from `/wiki-init`, warn the user:
+**Edge case — unfilled `purpose.md` template:** If `purpose.md` still contains the italicized placeholder prompts (`*<...>*`) from `/llm-wiki:init`, warn the user:
 > "Warning: `purpose.md` appears to be an unfilled template. Triage may be weak — relevance scoring will use the section headings as grounding. Consider filling in `purpose.md` before running research for best results."
 
 Proceed anyway, using whatever substantive content is present.
@@ -122,7 +122,7 @@ Which to ingest? Pass any of:
 ```
 
 **Edge case — all already-covered:** If every candidate is marked `[already-covered: ...]`, report:
-> "No new sources for '<topic>' — all candidates already exist in the wiki. Try broadening the query, or run `/wiki-query "<topic>"` to see what's already known."
+> "No new sources for '<topic>' — all candidates already exist in the wiki. Try broadening the query, or run `/llm-wiki:query "<topic>"` to see what's already known."
 
 Do not proceed to Step 4. No log entry is written.
 
@@ -149,7 +149,7 @@ If `--unsupervised` was passed, confirm instead:
 > "Proceeding with <N> sources in unsupervised mode — no per-source discussion pause. Ingesting now."
 
 Skip any sources already marked `[already-covered: ...]` unless the user explicitly included them by index. If an already-covered source is selected, note:
-> "Skipping [<N>] '<title>' — already covered as `<slug>`. Run `/wiki-ingest <url> --re-ingest` to force."
+> "Skipping [<N>] '<title>' — already covered as `<slug>`. Run `/llm-wiki:ingest <url> --re-ingest` to force."
 
 ---
 
@@ -210,11 +210,11 @@ Replace all placeholders with actual counts and titles from this run.
 
 ## Edge cases
 
-**Vault has no `purpose.md` (fresh `/wiki-init`, unfilled template):** Use whatever content is present in `purpose.md` as triage grounding. Warn the user that triage quality will be weak and suggest filling in the template before running research (see Step 0 above).
+**Vault has no `purpose.md` (fresh `/llm-wiki:init`, unfilled template):** Use whatever content is present in `purpose.md` as triage grounding. Warn the user that triage quality will be weak and suggest filling in the template before running research (see Step 0 above).
 
 **Web search returns 0 results:** Report "No candidates found for '<topic>'" and suggest broadening the query. Do not proceed. No log entry is written (see Step 1 above).
 
-**All candidates are `already-covered`:** Report "No new sources for '<topic>' — all candidates already in the wiki" and suggest broadening the query or running `/wiki-query "<topic>"` to see what's known. Do not proceed. No log entry is written (see Step 3 above).
+**All candidates are `already-covered`:** Report "No new sources for '<topic>' — all candidates already in the wiki" and suggest broadening the query or running `/llm-wiki:query "<topic>"` to see what's known. Do not proceed. No log entry is written (see Step 3 above).
 
 **User selects "none" or aborts at Step 4:** Do nothing. Write no log entry. Leave the vault unchanged.
 

@@ -4,7 +4,7 @@ allowed-tools: Bash, Read, Write, Edit, Skill, WebFetch
 argument-hint: <name> [<scenario>] ["<free-form context>"]
 ---
 
-You are running `/wiki-init`. Use the `llm-wiki` skill (`@skills/llm-wiki/SKILL.md`) for layout, page conventions, and scenario templates.
+You are running `/llm-wiki:init`. Use the `llm-wiki` skill (`@skills/llm-wiki/SKILL.md`) for layout, page conventions, and scenario templates.
 
 **Args:** $ARGUMENTS
 
@@ -209,5 +209,5 @@ Suggested next steps:
   • Configure Obsidian Web Clipper to write to: <absolute path>/raw/clips/
   • Set Obsidian's Settings → Files & links → Default location for new attachments to: raw/assets
   • Optional: install qmd for fast hybrid search at scale (https://github.com/tobi/qmd)
-  • Ingest your first source: /wiki-ingest <url-or-path>
+  • Ingest your first source: /llm-wiki:ingest <url-or-path>
 ```

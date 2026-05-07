@@ -4,7 +4,7 @@ allowed-tools: Bash, Read, Write, Edit, Skill, Glob, Grep
 argument-hint: "<question>" [--all | --vaults a,b,c] [--vault <path>]
 ---
 
-You are running `/wiki-query`. Use the `llm-wiki` skill (`@skills/llm-wiki/SKILL.md`) for the full query workflow, vault layout, citation syntax, and qmd integration.
+You are running `/llm-wiki:query`. Use the `llm-wiki` skill (`@skills/llm-wiki/SKILL.md`) for the full query workflow, vault layout, citation syntax, and qmd integration.
 
 **Args:** $ARGUMENTS
 
@@ -65,7 +65,7 @@ Suggest the page type based on the answer's shape; ask before filing. If user ag
 
 ### Step 0 — Read the registry
 
-Read `~/.llm-wiki/vaults.json`. If file is absent or empty, error: "No vaults registered. Run `/wiki-init <name>` first." If a target named in `--vaults a,b` isn't found in the registry, error with the available names.
+Read `~/.llm-wiki/vaults.json`. If file is absent or empty, error: "No vaults registered. Run `/llm-wiki:init <name>` first." If a target named in `--vaults a,b` isn't found in the registry, error with the available names.
 
 ### Step 1 — Validate vault paths
 

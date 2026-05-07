@@ -4,7 +4,7 @@ allowed-tools: Bash, Read, Write, Edit, Skill, Glob, Grep, WebFetch
 argument-hint: <url-or-path> [--scaffold] [--re-ingest] [--all] [--vault <path>]
 ---
 
-You are running `/wiki-ingest`. Use the `llm-wiki` skill (`@skills/llm-wiki/SKILL.md`) for the full ingest workflow, vault layout, page conventions, and document-extraction tooling. The skill is the authoritative procedure reference; this slash command is the entry point.
+You are running `/llm-wiki:ingest`. Use the `llm-wiki` skill (`@skills/llm-wiki/SKILL.md`) for the full ingest workflow, vault layout, page conventions, and document-extraction tooling. The skill is the authoritative procedure reference; this slash command is the entry point.
 
 **Args:** $ARGUMENTS
 
@@ -17,7 +17,7 @@ You are running `/wiki-ingest`. Use the `llm-wiki` skill (`@skills/llm-wiki/SKIL
 
 **Mode:** if `--scaffold` is set, this is *field-map mode* — file the source as a survey/awesome-list, generate stub pages only, never update `synthesis.md`. Else *standard mode* — write rich content, update synthesis if warranted.
 
-**Step 0 — Detect the vault.** Use `--vault <path>` if provided, else walk up from cwd to find `purpose.md` (stopping at `$HOME` or git root). If not found, refuse with the "Not a vault" error from SKILL.md and suggest `/wiki-init` or `--vault <path>`.
+**Step 0 — Detect the vault.** Use `--vault <path>` if provided, else walk up from cwd to find `purpose.md` (stopping at `$HOME` or git root). If not found, refuse with the "Not a vault" error from SKILL.md and suggest `/llm-wiki:init` or `--vault <path>`.
 
 ---
 

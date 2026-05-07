@@ -4,7 +4,7 @@ allowed-tools: Bash, Read, Edit, Write, Skill, Grep, Glob
 argument-hint: [--vault <path>]
 ---
 
-You are running `/wiki-lint`. Use the `llm-wiki` skill (`@skills/llm-wiki/SKILL.md`) for vault layout,
+You are running `/llm-wiki:lint`. Use the `llm-wiki` skill (`@skills/llm-wiki/SKILL.md`) for vault layout,
 page conventions, and the lint workflow.
 
 **Args:** $ARGUMENTS (optional `--vault <path>`)
