@@ -32,6 +32,7 @@ A condensed record of the design decisions made while shaping the plugin, with w
 | 22 | Drift detection in ingest | Silent / Auto-update / **Always-ask-first** | **Step 5.5 with `y/n/s` prompt** (v0.4.0) | `purpose.md` is owned by the user; the skill may suggest but never auto-save. `s` option lets users permanently skip noisy sources |
 | 23 | 9th lint check (purpose drift) | Auto-fix / **Flag as suggestion** | **Suggestion severity, not auto-fixable** (v0.4.0) | Resolution requires deciding whether to update `purpose.md` or relocate sources — not safe to automate |
 | 24 | `/llm-wiki:init` path UX | Status quo (cwd-default, document better) / **Confirm bare names** / `~/wikis/<name>` default | **Prompt on bare names; explicit `/` or `~` paths skip the prompt** (v0.4.1) | Real failure mode: user runs from `~`, vault lands at `/Users/f.luo/<name>` unintentionally. Prompt is one-shot, no behavior change for users who pass explicit paths |
+| 25 | qmd lifecycle ownership | User runs `qmd collection add/update/embed` themselves (gist-faithful) / Skill registers eagerly on init / **Skill registers lazily on first ingest, updates after each ingest/lint, removes on rm** | **Lazy registration + auto update/embed/remove** (v0.4.2) | "Optional and managed-for-you" matches the user expectation set by `/llm-wiki:init`'s install hint; lazy beats eager because qmd may be installed after a vault already exists; old `qmd index --update` syntax also didn't exist in qmd 2.1, so the rewrite was forced anyway |
 
 ## Version History
 
@@ -45,3 +46,4 @@ A condensed record of the design decisions made while shaping the plugin, with w
 | v0.3.0 | 2026-05-06 | `/llm-wiki:research` offers to draft `purpose.md` from the topic when the vault's `purpose.md` is still a template |
 | v0.4.0 | 2026-05-06 | `/llm-wiki:rm` for safe vault deletion; ingest offers `purpose.md` updates on scope drift; lint adds purpose-drift check (9th check) |
 | v0.4.1 | 2026-05-06 | `/llm-wiki:init` confirms the resolved path before scaffolding when a bare name is given; redirect to a different `/`- or `~`-prefixed path inline without re-running |
+| v0.4.2 | 2026-05-06 | Skill auto-manages qmd collection lifecycle (lazy register on first ingest, update + embed after each ingest/lint/research, remove on `/llm-wiki:rm`); query path uses `qmd query -c <vault>` (hybrid + rerank) instead of the previous `qmd search`. Users no longer touch qmd directly |

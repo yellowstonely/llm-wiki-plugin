@@ -88,10 +88,17 @@ Add a log entry in this format:
 
 ### 7. Re-index if qmd is available
 
-If `qmd` is on PATH **and** any pages were deleted or renamed during auto-fix (step 5a or 5b), run:
+If `qmd` is on PATH **and** any pages were deleted or renamed during auto-fix (step 5a or 5b), run the same lifecycle block as `/llm-wiki:ingest` Step 7 — lazy-register the vault as a collection, then update + embed. All three commands are best-effort; don't fail lint if qmd errors.
 
 ```bash
-qmd index --update <vault>
+if command -v qmd >/dev/null 2>&1; then
+  vault_name=$(basename <vault>)
+  if ! qmd collection list 2>/dev/null | grep -q "^${vault_name} ("; then
+    qmd collection add <vault> --name "${vault_name}" >/dev/null 2>&1 || true
+  fi
+  qmd update -c "${vault_name}" >/dev/null 2>&1 || true
+  qmd embed -c "${vault_name}" >/dev/null 2>&1 || true
+fi
 ```
 
 ---

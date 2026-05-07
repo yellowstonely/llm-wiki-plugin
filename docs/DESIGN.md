@@ -328,7 +328,7 @@ Ingest a source into the current vault.
    - The proposed update is **always shown** before saving — never auto-saved silently.
    - Scenario-aware: matches section names to the vault's chosen scenario template.
 6. **Update SHA-256 cache** with files-written list.
-7. **If qmd present:** run `qmd index --update <vault>` (cheap when warm).
+7. **If qmd present:** run the qmd lifecycle block (lazy-register the collection if missing, then `qmd update -c <vault-name>` and `qmd embed -c <vault-name>`). See §2.8 for details. All best-effort; never fails the ingest.
 
 **Workflow (batch via `--all` or natural language "ingest all new sources"):**
 
@@ -352,7 +352,7 @@ If neither `--all` nor `--vaults` is provided, query operates on the cwd-detecte
 **Workflow (single vault):**
 
 1. Read `wiki/index.md` first.
-2. **If qmd present and wiki ≥ ~100 pages:** `qmd search "<question>"` + rerank top-K (default 8).
+2. **If qmd present and wiki ≥ ~100 pages:** `qmd query "<question>" -c <vault-name> -n 8` (hybrid + rerank). See §2.8.
 3. **Otherwise:** select relevant pages by index scan + filename match (typical: 5–10 pages).
 4. Read those pages. Read `wiki/synthesis.md` and `purpose.md` for cross-cutting context.
 5. Answer with `[[wiki-page]]` citations that bottom out at `sources/` pages.
@@ -754,33 +754,58 @@ Already specified in §2.4.6. Behavior summary:
 
 ## 2.8 qmd Integration
 
+The skill manages qmd's collection lifecycle automatically once qmd is installed. Users never run `qmd collection add`, `qmd update`, or `qmd embed` by hand — the skill does it as a side effect of the operations they already run (`/llm-wiki:ingest`, `/llm-wiki:lint`, `/llm-wiki:rm`). qmd remains optional; nothing breaks if it's absent.
+
 ### Detection
 
-Skill checks `which qmd` at startup of `/llm-wiki:query`. If absent, skips silently and uses index-scan navigation.
+Each command checks `command -v qmd`. If absent, skips qmd-specific work silently — never errors or warns.
 
-### When invoked
+### Collection naming
+
+The qmd collection name is `basename <vault>`. Example: vault at `~/git/transformer-wiki` registers as qmd collection `transformer-wiki`. This makes the mapping memorable and lets the user inspect with `qmd collection list` if curious.
+
+### Lifecycle block (used by ingest, lint, research)
+
+After any successful operation that wrote to `wiki/` files:
+
+```bash
+if command -v qmd >/dev/null 2>&1; then
+  vault_name=$(basename <vault>)
+  if ! qmd collection list 2>/dev/null | grep -q "^${vault_name} ("; then
+    qmd collection add <vault> --name "${vault_name}" >/dev/null 2>&1 || true
+  fi
+  qmd update -c "${vault_name}" >/dev/null 2>&1 || true
+  qmd embed -c "${vault_name}" >/dev/null 2>&1 || true
+fi
+```
+
+Lazy registration (the `qmd collection list | grep` guard) means the skill is robust to qmd being installed *after* the vault was created — first ingest after the install registers the collection.
+
+### When invoked (read path)
 
 | Wiki size | qmd installed | Query strategy |
 |---|---|---|
 | Any | ✗ | Read `index.md`, then drill into matched pages |
-| < 100 pages | ✓ | Same as above (qmd is overkill) |
-| ≥ 100 pages | ✓ | `qmd search "<question>" --top 8` + rerank, then read top hits |
+| < 100 pages | ✓ | Same as above (qmd is overkill at this scale) |
+| ≥ 100 pages | ✓ | `qmd query "<question>" -c <vault-name> -n 8` (hybrid + rerank), then read top hits |
 
-The 100-page threshold matches Karpathy's gist claim.
+The 100-page threshold matches Karpathy's gist claim. The `-c <vault-name>` flag scopes results to the active vault even if the user has other qmd collections registered.
 
-### Reindex
+### Removal hook
 
-After every successful `/llm-wiki:ingest`, if qmd present, run `qmd index --update <vault>`. Cheap when warm.
+`/llm-wiki:rm` runs `qmd collection remove <vault-name>` after deleting the directory and updating the registry. Best-effort; silent on "no such collection".
 
-After `/llm-wiki:lint`'s auto-fix (which may delete pages), same — `qmd index --update`.
+### Self-healing on first query after late install
+
+If `qmd query` returns "collection not found" (e.g. the user installed qmd after the vault was already substantial), the skill falls back to index-scan for the current query and runs the lifecycle block before the next query. The user does not see this transition.
 
 ### v1: CLI only, no MCP
 
-The skill calls qmd via the Bash tool. qmd's MCP server is not wired into the plugin in v1. We document MCP wiring as an opt-in v1.5 add for users who want lower-latency tool access.
+The skill calls qmd via the Bash tool. qmd's own MCP server and Claude Code plugin are not used by this skill (per design decision #11). Users who install the qmd plugin separately for direct qmd workflows get qmd-specific commands; they coexist with this skill cleanly.
 
 ### Install
 
-The skill does not install qmd. `/llm-wiki:init`'s post-install message says: *"Optional: install qmd (https://github.com/tobi/qmd) for fast hybrid search once your wiki passes ~100 pages."*
+The skill does not install qmd. `/llm-wiki:init`'s post-install message says: *"Optional: install qmd (https://github.com/tobi/qmd) for fast hybrid search once your wiki passes ~100 pages — the skill manages it for you once installed."*
 
 ## 2.9 Document Extraction
 

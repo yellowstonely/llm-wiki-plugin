@@ -239,6 +239,6 @@ Suggested next steps:
   • Open in Obsidian:          open -a 'Obsidian' <absolute path>
   • Configure Obsidian Web Clipper to write to: <absolute path>/raw/clips/
   • Set Obsidian's Settings → Files & links → Default location for new attachments to: raw/assets
-  • Optional: install qmd for fast hybrid search at scale (https://github.com/tobi/qmd)
+  • Optional: install qmd for fast hybrid search at scale (https://github.com/tobi/qmd) — once installed, the skill manages it for you
   • Ingest your first source: /llm-wiki:ingest <url-or-path>
 ```

@@ -213,7 +213,7 @@ The source is already resolved and in Markdown form at `<vault>/raw/clips/<slug>
    - Update `<vault>/wiki/synthesis.md` if this source materially shifts the cross-cutting position (standard mode only)
    - Append per-source log entry to `<vault>/wiki/log.md`: `## [<today>] ingest | <source-title>`
 5. Update SHA-256 cache — SKILL.md ingest Step 6 (atomic write to `.llm-wiki/ingest-cache.json.tmp`, then `mv`).
-6. If qmd is present — SKILL.md ingest Step 7: `which qmd && qmd index --update <vault> 2>&1 || true`
+6. If qmd is present — run the SKILL.md ingest Step 7 lifecycle block (lazy-register the vault as a qmd collection if missing, then `qmd update -c <vault-name>` and `qmd embed -c <vault-name>`). All best-effort; never fail the research workflow on qmd errors.
 
 ---
 

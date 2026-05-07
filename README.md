@@ -143,8 +143,9 @@ specific source with `s`.
 **Syntax:** `/llm-wiki:query <question> [--all | --vaults a,b] [--vault <path>]`
 
 Answer a question against the wiki. Reads `index.md` first, selects relevant
-pages by index scan (or `qmd search` if qmd is installed and the wiki has
-≥ ~100 pages), reads those pages plus `synthesis.md` and `purpose.md`, then
+pages by index scan (or `qmd query -c <vault-name>` if qmd is installed and
+the wiki has ≥ ~100 pages), reads those pages plus `synthesis.md` and
+`purpose.md`, then
 answers with `[[wikilink]]` citations that bottom out at `sources/` pages.
 If the answer is a novel comparison or synthesis, Claude offers to file it
 back as a new page — and asks before writing.
@@ -332,9 +333,13 @@ setting at `raw/assets/` so inline images land inside the vault tree.
 **qmd hybrid search** — install [qmd](https://github.com/tobi/qmd) for fast
 hybrid (BM25 + vector) search. The plugin uses it automatically once your wiki
 reaches ~100 pages; below that threshold, index-scan navigation handles queries
-well. After each ingest, the plugin runs `qmd index --update <vault>` to keep
-the index warm. qmd's MCP server integration is not wired in v1 (the plugin
-calls it via the shell); MCP wiring is an opt-in future step.
+well. **You never run qmd directly** — the plugin manages the collection
+lifecycle for you: registers the vault as a qmd collection on first ingest
+after qmd is installed, runs `qmd update -c <vault-name>` and
+`qmd embed -c <vault-name>` after each ingest/lint/research, and removes the
+collection on `/llm-wiki:rm`. Queries at scale use `qmd query -c <vault-name>`
+(hybrid + rerank). qmd's MCP server is not wired in v1 (the plugin calls qmd
+via the shell); MCP wiring is an opt-in future step.
 
 ---
 

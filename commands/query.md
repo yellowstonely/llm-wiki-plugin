@@ -32,8 +32,10 @@ This is the LLM's primary navigation anchor. Skim it to identify candidate pages
 
 Count pages in `<vault>/wiki/` (rough: `find <vault>/wiki -name '*.md' -type f | wc -l`).
 
-- If `qmd` is on PATH AND page count ≥ 100: run `qmd search "<question>" --top 8` (or equivalent). Re-rank results by relevance.
+- If `qmd` is on PATH AND page count ≥ 100: run `qmd query "<question>" -c <vault-name> -n 8`, where `<vault-name>` is `basename <vault>`. `qmd query` is hybrid (BM25 + vector) plus rerank — best quality. Use those results as the candidate pages.
 - Else: select pages by index-scan + filename match. Read top 5–10 candidate pages.
+
+The vault is registered as a qmd collection automatically by `/llm-wiki:ingest` (Step 7 lifecycle block). If a query hits the `≥ 100 pages` branch but `qmd query` returns "collection not found" (e.g. user installed qmd after the wiki was already large), fall back to index-scan and silently run the lifecycle block from `/llm-wiki:ingest` Step 7 once before the next query — no need to surface this to the user.
 
 ### Step 3 — Read the selected pages
 

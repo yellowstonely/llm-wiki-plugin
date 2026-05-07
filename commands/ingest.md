@@ -185,13 +185,23 @@ Atomic write to `<vault>/.llm-wiki/ingest-cache.json`:
 
 On `--re-ingest`, the entry is replaced, not merged. Old `files_written` list is overwritten with the new one.
 
-### Step 7 — qmd reindex (if available)
+### Step 7 — qmd lifecycle (if available)
+
+If `qmd` is on PATH, the skill manages the qmd collection for this vault automatically — the user never runs qmd commands by hand. The vault name (basename of `<vault>`) is the collection name.
 
 ```bash
-which qmd && qmd index --update <vault> 2>&1 || true
+if command -v qmd >/dev/null 2>&1; then
+  vault_name=$(basename <vault>)
+  # Lazy registration: register the collection on first ingest if not already
+  if ! qmd collection list 2>/dev/null | grep -q "^${vault_name} ("; then
+    qmd collection add <vault> --name "${vault_name}" >/dev/null 2>&1 || true
+  fi
+  qmd update -c "${vault_name}" >/dev/null 2>&1 || true
+  qmd embed -c "${vault_name}" >/dev/null 2>&1 || true
+fi
 ```
 
-Don't fail the ingest if qmd is missing or errors. The `2>&1 || true` suppresses non-zero exits.
+All three commands (`collection add`, `update`, `embed`) are best-effort. None of them should fail the ingest if they error — qmd is optional infrastructure. Suppress stdout/stderr unless the user explicitly asks.
 
 ---
 

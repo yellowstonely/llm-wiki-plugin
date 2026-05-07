@@ -559,7 +559,7 @@ Greppable via `grep "^## \[" wiki/log.md | tail -10`.
    - **Atomic write**: write to `.llm-wiki/ingest-cache.json.tmp`, then `mv` over the original. This protects against corruption on interruption.
    - On `--re-ingest`, the entry is replaced (not merged) — old `files_written` list is overwritten.
 
-7. **If qmd is present:** run `qmd index --update <vault>` (cheap when warm).
+7. **If qmd is present:** run the qmd lifecycle block — lazy-register the vault as a qmd collection if missing, then `qmd update` and `qmd embed` (both scoped to the vault's collection). The skill manages the qmd collection automatically; the user never runs qmd commands by hand. See "qmd integration" below for the exact commands.
 
 **Batch workflow (via `--all` or natural-language "ingest all new sources"):**
 
@@ -576,7 +576,7 @@ Greppable via `grep "^## \[" wiki/log.md | tail -10`.
 **Single-vault workflow:**
 
 1. Read `wiki/index.md` first.
-2. If qmd is present and the wiki has 100 or more pages: run `qmd search "<question>" --top 8` and rerank the top results.
+2. If qmd is present and the wiki has 100 or more pages: run `qmd query "<question>" -c <vault-name> -n 8`, where `<vault-name>` is `basename <vault>`. `qmd query` is hybrid (BM25 + vector) plus rerank — best quality available.
 3. Otherwise: select relevant pages by index scan and filename match (typically 5–10 pages).
 4. Read those pages. Also read `wiki/synthesis.md` and `purpose.md` for cross-cutting context.
 5. Answer with `[[wiki-page]]` citations that bottom out at `wiki/sources/` pages.
@@ -670,7 +670,7 @@ Run the following 8 checks against the current vault:
 - Missing-concept-page authoring (new page content; ask before writing)
 - Purpose drift — requires deciding whether to update `purpose.md` to match actual content, or relocate off-scope sources to a different vault
 
-After auto-fixes, if qmd is present, run `qmd index --update <vault>`.
+After auto-fixes, if qmd is present, run the qmd lifecycle block (same as ingest Step 7) — lazy-register if missing, then `qmd update` + `qmd embed` scoped to the vault.
 
 **Log.** Append `## [YYYY-MM-DD] lint | N issues` to `wiki/log.md` with the count summary broken down by severity.
 
@@ -678,33 +678,59 @@ After auto-fixes, if qmd is present, run `qmd index --update <vault>`.
 
 ## qmd integration
 
+The skill manages qmd's collection lifecycle automatically. Users never run `qmd collection add`, `qmd update`, or `qmd embed` by hand — the skill does it as a side effect of the operations they already run (`/llm-wiki:ingest`, `/llm-wiki:lint`, `/llm-wiki:rm`).
+
 ### Detection
 
-When executing `/llm-wiki:query`, check `which qmd`. If absent, proceed silently with index-scan navigation. Do not error or warn — qmd is optional.
+Check `command -v qmd` (or `which qmd`). If absent, proceed silently — never error or warn. qmd is purely optional.
 
-### When to invoke qmd
+### Collection naming
+
+The collection name is the basename of the vault path. Example: `<vault> = ~/git/transformer-wiki` → collection name is `transformer-wiki`.
+
+### Lifecycle block (used by ingest, lint, research)
+
+After any successful operation that touched `wiki/` files, run this block:
+
+```bash
+if command -v qmd >/dev/null 2>&1; then
+  vault_name=$(basename <vault>)
+  # Lazy registration — first time we touch a vault that has qmd installed
+  if ! qmd collection list 2>/dev/null | grep -q "^${vault_name} ("; then
+    qmd collection add <vault> --name "${vault_name}" >/dev/null 2>&1 || true
+  fi
+  qmd update -c "${vault_name}" >/dev/null 2>&1 || true
+  qmd embed -c "${vault_name}" >/dev/null 2>&1 || true
+fi
+```
+
+Every command in this block is best-effort with `|| true`. Never fail the parent operation on a qmd error.
+
+### When to invoke `qmd query` (read path)
 
 | Wiki size | qmd installed | Query strategy |
 |---|---|---|
 | Any | No | Read `index.md`, then drill into matched pages |
-| < 100 pages | Yes | Same as above (qmd is overkill at this scale) |
-| ≥ 100 pages | Yes | `qmd search "<question>" --top 8`, rerank, then read top hits |
+| < 100 pages | Yes | Same as above (qmd is overkill at this scale; index-scan is faster end-to-end) |
+| ≥ 100 pages | Yes | `qmd query "<question>" -c <vault-name> -n 8` (hybrid + rerank), then read top hits |
 
-The 100-page threshold matches Karpathy's gist recommendation.
+The 100-page threshold matches Karpathy's gist recommendation. The `-c <vault-name>` flag scopes results to the active vault, even if the user has other qmd collections registered.
 
-### Reindex hook
+### Removal hook
 
-After every successful `/llm-wiki:ingest`, if qmd is on PATH, run `qmd index --update <vault>`. This is cheap when the index is warm.
+`/llm-wiki:rm` runs `qmd collection remove <vault-name>` after deleting the directory and updating the registry. Best-effort; silent on "no such collection".
 
-After `/llm-wiki:lint`'s auto-fix phase (which may delete pages), run `qmd index --update <vault>` again.
+### Self-healing on first query after late install
+
+If `qmd query` returns "collection not found" (e.g. the user installed qmd after the vault was already substantial), fall back to index-scan for the current query, then run the lifecycle block before the next query. No need to surface this transition to the user — it just starts working.
 
 ### v1: CLI only via Bash
 
-Call qmd via the Bash tool. qmd's MCP server is not wired into the plugin in v1. Document MCP wiring as an opt-in v1.5 add for users who want lower-latency tool access.
+Call qmd via the Bash tool. qmd's own MCP server and Claude Code plugin are not used by this skill (per design decision #11). Users who install the qmd plugin separately get qmd-specific commands; they coexist with this skill cleanly.
 
 ### Install note
 
-The skill does not install qmd. The `/llm-wiki:init` post-install summary includes: *"Optional: install qmd (https://github.com/tobi/qmd) for fast hybrid search once your wiki passes ~100 pages."*
+The skill does not install qmd. The `/llm-wiki:init` post-install summary includes: *"Optional: install qmd (https://github.com/tobi/qmd) for fast hybrid search once your wiki passes ~100 pages — the skill manages it for you once installed."*
 
 ---
 

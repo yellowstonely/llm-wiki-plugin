@@ -132,6 +132,18 @@ If the path does NOT exist on disk, print: `"  ℹ Directory <resolved-path> not
 
 Print: `"  ✓ Removed entry '<name>' from ~/.llm-wiki/vaults.json"`
 
+### Step 8.5 — Drop the qmd collection (best-effort)
+
+If `qmd` is on PATH, also drop the matching qmd collection so search results don't keep referencing the deleted vault. Best-effort: if no collection exists by that name, qmd prints a message and exits non-zero — silently swallow it.
+
+```bash
+if command -v qmd >/dev/null 2>&1; then
+  qmd collection remove "<name>" >/dev/null 2>&1 || true
+fi
+```
+
+If the removal succeeded, print: `"  ✓ Dropped qmd collection '<name>'"`. If qmd isn't installed or no such collection, skip the print.
+
 ### Step 9 — Print summary
 
 ```
